@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Renova — Manutenção Predial</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --r:#C0392B;--r2:#96281B;--r-light:#FCE8E6;
+  --dark:#161616;--mid:#2A2A2A;--surface:#F4F3EF;--card:#FFFFFF;
+  --border:#E2DFD8;--text:#161616;--muted:#6E6E6E;
+  --green:#1B6535;--green-light:#E8F5EE;
+  --blue:#1456A0;--blue-light:#E8F0FA;
+  --amber:#9A5209;--amber-light:#FEF0DC;
+  --font:'Barlow',sans-serif;--font-c:'Barlow Condensed',sans-serif;
+}
+html,body{height:100%;background:#222}
+body{font-family:var(--font);color:var(--text);font-size:14px}
+#root{max-width:430px;margin:0 auto;min-height:100vh;background:var(--surface);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.4)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* HEADER */
+.hdr{background:var(--dark);padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:10}
+.hdr-logo{font-family:var(--font-c);font-size:20px;font-weight:700;letter-spacing:1.5px;color:#fff}
+.hdr-logo em{color:var(--r);font-style:normal}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.hdr-user{width:30px;height:30px;border-radius:50%;background:var(--r);display:flex;align-items:center;justify-content:center;font-family:var(--font-c);font-size:13px;font-weight:700;color:#fff;cursor:pointer}
+.hdr-back{background:none;border:none;color:#ccc;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font);font-size:13px;padding:6px 0}
+.hdr-back:hover{color:#fff}
+.hdr-title{font-family:var(--font-c);font-size:16px;font-weight:600;color:#fff;flex:1;text-align:center}
+
+/* BOTTOM NAV */
+.bnav{background:var(--dark);display:flex;border-top:2px solid #2A2A2A;flex-shrink:0;position:sticky;bottom:0;z-index:10}
+.bnav-btn{flex:1;background:none;border:none;color:#666;padding:9px 0 7px;cursor:pointer;font-family:var(--font-c);font-size:10px;font-weight:600;letter-spacing:.5px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color .15s;text-transform:uppercase}
+.bnav-btn.active{color:var(--r)}
+.bnav-btn svg{width:20px;height:20px;stroke-width:1.5}
+
+/* CONTENT */
+.screen{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.pad{padding:16px}
+
+/* OFFLINE BAR */
+.offline-bar{background:var(--amber-light);border-bottom:1px solid #F5C842;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--amber);flex-shrink:0}
+.offline-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0}
+
+/* STEP BAR */
+.step-bar{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;flex-shrink:0}
+.step-item{display:flex;align-items:center;flex:1}
+.step-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;font-family:var(--font-c);transition:all .25s}
+.step-dot.done{background:var(--r);color:#fff}
+.step-dot.active{background:var(--dark);color:#fff}
+.step-dot.todo{background:var(--border);color:var(--muted)}
+.step-line{flex:1;height:2px;margin:0 3px;transition:background .25s}
+.step-line.done{background:var(--r)}
+.step-line.todo{background:var(--border)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.card-body{padding:14px 16px}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:var(--font-c);font-size:15px;font-weight:600}
+.card-meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center}
+.stat-num{font-family:var(--font-c);font-size:24px;font-weight:700}
+.stat-lbl{font-size:10px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-top:1px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--font-c);letter-spacing:.3px;white-space:nowrap}
+.badge-red{background:var(--r-light);color:var(--r2)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-gray{background:#EBEBEB;color:#555}
+
+/* SEC LABEL */
+.sec{font-family:var(--font-c);font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;margin-top:2px}
+
+/* REPORT TYPE GRID */
+.rtype-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rtype-card{border:1.5px solid var(--border);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .2s;background:var(--card)}
+.rtype-card:hover,.rtype-card.sel{border-color:var(--r);background:var(--r-light)}
+.rtype-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px}
+.rtype-name{font-family:var(--font-c);font-size:15px;font-weight:700;color:var(--text)}
+.rtype-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
+
+/* FORM FIELDS */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px;letter-spacing:.2px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--text);background:var(--card);outline:none;transition:border-color .15s;appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--r);box-shadow:0 0 0 3px rgba(192,57,43,.08)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* CHECKLIST */
+.sys-section{margin-bottom:14px}
+.sys-header{display:flex;align-items:center;justify-content:space-between;padding:10px 0;cursor:pointer;user-select:none}
+.sys-name{font-family:var(--font-c);font-size:14px;font-weight:700;color:var(--text)}
+.sys-count{font-size:11px;color:var(--muted)}
+.sys-arrow{color:var(--muted);transition:transform .2s;font-size:12px}
+.sys-arrow.open{transform:rotate(180deg)}
+.sys-items{border-left:2px solid var(--border);margin-left:6px;padding-left:14px;margin-bottom:4px}
+.chk-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--surface)}
+.chk-item:last-child{border-bottom:none}
+.chk-box{width:19px;height:19px;border:1.5px solid var(--border);border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px}
+.chk-box.chk{background:var(--r);border-color:var(--r)}
+.chk-text{font-size:12px;line-height:1.5;color:var(--text);flex:1}
+.chk-period{display:inline-block;font-size:10px;font-family:var(--font-c);font-weight:600;color:var(--muted);margin-top:2px}
+
+/* PHOTO SECTION */
+.photo-section{margin-bottom:16px}
+.photo-section-title{font-family:var(--font-c);font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.photo-req{font-size:11px;color:var(--muted)}
+.photo-req span{color:var(--r);font-weight:600}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.photo-slot{aspect-ratio:1;border-radius:7px;border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--surface);transition:all .15s;position:relative;overflow:hidden;font-size:11px;color:var(--muted);gap:4px}
+.photo-slot:hover{border-color:var(--r);background:var(--r-light)}
+.photo-slot.filled{border:none;background:transparent}
+.photo-slot.filled img{width:100%;height:100%;object-fit:cover}
+.photo-slot svg{width:20px;height:20px;stroke:var(--muted)}
+.photo-ok{position:absolute;bottom:4px;right:4px;width:16px;height:16px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* MATERIAL LIST */
+.mat-search{width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px 9px 36px;font-family:var(--font);font-size:14px;outline:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236E6E6E' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 11px center;transition:border-color .15s}
+.mat-search:focus{border-color:var(--r)}
+.mat-item{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--surface);border-radius:7px;margin-bottom:5px}
+.mat-code{font-family:var(--font-c);font-size:10px;color:var(--muted);background:var(--border);padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600}
+.mat-desc{flex:1;font-size:12px;color:var(--text);line-height:1.3}
+.mat-und{font-size:11px;color:var(--muted)}
+.mat-qty-wrap{display:flex;align-items:center;gap:4px}
+.mat-qty{width:46px;border:1px solid var(--border);border-radius:5px;padding:5px 6px;font-size:13px;text-align:center;color:var(--text);background:var(--card);font-family:var(--font-c);font-weight:600}
+.mat-added{border-left:3px solid var(--green);background:var(--green-light)}
+
+/* BUTTONS */
+.btn{width:100%;padding:12px 16px;border:none;border-radius:8px;font-family:var(--font-c);font-size:15px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--r);color:#fff}
+.btn-primary:hover{background:var(--r2)}
+.btn-primary:active{transform:scale(.98)}
+.btn-outline{background:none;border:1.5px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--r);color:var(--r)}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:6px}
+.btn-ghost{background:none;border:none;color:var(--r);font-family:var(--font-c);font-size:13px;font-weight:600;cursor:pointer;padding:4px 0}
+.btn-danger{background:#FCE8E6;color:var(--r2);border:none}
+
+/* SUCCESS */
+.success-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;flex:1}
+.success-icon{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.success-title{font-family:var(--font-c);font-size:22px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:28px;max-width:280px}
+
+/* LIST */
+.list-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+.list-item:last-child{border-bottom:none}
+.list-item:hover{opacity:.8}
+.list-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.list-info{flex:1;min-width:0}
+.list-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.list-arrow{color:var(--border)}
+
+/* SIGNATURE PAD */
+.sig-pad{border:1.5px dashed var(--border);border-radius:8px;height:120px;background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:crosshair;margin-top:8px;position:relative;overflow:hidden}
+.sig-pad canvas{width:100%;height:100%}
+.sig-hint{font-size:12px;color:var(--muted);pointer-events:none;position:absolute}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:14px 0}
+.divider-label{display:flex;align-items:center;gap:10px;margin:14px 0}
+.divider-label span{font-size:11px;color:var(--muted);white-space:nowrap}
+.divider-label::before,.divider-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* PROFILE */
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--r);display:flex;align-items:center;justify-content:center;font-family:var(--font-c);font-size:24px;font-weight:700;color:#fff;margin:0 auto 12px}
+
+/* MISC */
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}
+.gap-8{gap:8px}.gap-10{gap:10px}.gap-12{gap:12px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}
+.text-muted{color:var(--muted)}.text-r{color:var(--r)}.text-green{color:var(--green)}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.font-c{font-family:var(--font-c)}
+.text-sm{font-size:12px}.text-xs{font-size:11px}
+.fade{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.w-full{width:100%}
+.border-top{border-top:1px solid var(--border);padding-top:12px;margin-top:12px}
+.tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--font-c);font-weight:600}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA — ANEXO B COMPLETO
+// ═══════════════════════════════════════════════════
+const ANEXO_B = {
+  A: [
+    {
+      sistema: "Instalações Civis",
+      subsistemas: [
+        {
+          nome: "Coberturas",
+          itens: [
+            {id:"cob1", texto:"Inspecionar integridade de calhas, rufos, chapins, telhas, policarbonatos, cumeeiras, engradamentos, impermeabilizações. Executar reparos nas vedações, fixações, tratar corrosões, desentupir calhas.", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Fachadas",
+          itens: [
+            {id:"fac1", texto:"Inspeção visual de integridade dos diversos elementos das fachadas, com vistas à identificação e eliminação de riscos.", periodo:"A CADA 03 MESES"},
+            {id:"fac2", texto:"Inspecionar esquadrias externas, grades, brises, toldos, vidros, fixações, ferragens, vedações, suportes de ar-condicionado. Executar ajustes e reparos.", periodo:"A CADA 12 MESES"},
+            {id:"fac3", texto:"Inspecionar integridade das fachadas: revestimentos, rebocos, juntas de dilatação, rejuntamentos. Testes à percussão para identificar pontos com som cavo, desplacamentos, fissuras.", periodo:"A CADA 12 MESES"},
+            {id:"fac4", texto:"Elaborar laudo técnico anual certificando as condições de segurança das fachadas.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Alvenarias e Estruturais",
+          itens: [
+            {id:"alv1", texto:"Inspecionar alvenarias, elementos estruturais (lajes, vigas, pilares, marquises), verificando fissuras, trincas, armações expostas.", periodo:"A CADA 12 MESES"},
+            {id:"alv2", texto:"Inspecionar painéis divisórios, guarda-corpos, corrimãos, paredes em gesso. Executar ajustes de fixação e reparos.", periodo:"A CADA 06 MESES"},
+          ]
+        },
+        {
+          nome: "Revestimentos e Acabamentos",
+          itens: [
+            {id:"rev1", texto:"Inspecionar revestimentos internos (pisos, paredes, tetos), rebocos, pinturas. Verificar fissuras, trincas, desprendimentos, efetuar rejuntamentos.", periodo:"A CADA 12 MESES"},
+            {id:"rev2", texto:"Inspecionar forros (gesso, fibra mineral, madeira, metálico). Executar reparos e ajustes.", periodo:"A CADA 12 MESES"},
+            {id:"rev3", texto:"Inspecionar tablados, pisos elevados, assoalhos. Executar reparos e ajustes.", periodo:"A CADA 12 MESES"},
+            {id:"rev4", texto:"Inspecionar esquadrias internas, acessórios, vidros, ferragens, fechaduras, fixações e vedações.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Áreas Externas",
+          itens: [
+            {id:"ext1", texto:"Inspecionar muros, pisos externos, passeios, calçadas, tampas de caixas. Executar reparos.", periodo:"A CADA 06 MESES"},
+            {id:"ext2", texto:"Inspecionar gradis, alambrados, portões, portas de enrolar, coberturas de garagens, toldos, mastros. Executar ajustes de fixação.", periodo:"A CADA 12 MESES"},
+          ]
+        }
+      ]
+    },
+    {
+      sistema: "Instalações Hidrossanitárias",
+      subsistemas: [
+        {
+          nome: "Água Fria",
+          itens: [
+            {id:"hid1", texto:"Inspecionar reservatórios (superiores e inferiores), tampas, registros, flanges, boias, chaves boias. Reparar vazamentos, tratar corrosões.", periodo:"A CADA 03 MESES"},
+            {id:"hid2", texto:"Inspecionar torneiras, registros, válvulas de retenção, válvulas de descarga, duchas higiênicas, engates flexíveis, caixas acopladas.", periodo:"A CADA 03 MESES"},
+            {id:"hid3", texto:"Inspecionar integridade das tubulações nos barriletes, coberturas, shafts, áreas externas. Reparar vazamentos, solucionar entupimentos.", periodo:"A CADA 12 MESES"},
+            {id:"hid4", texto:"Inspecionar vasos sanitários, mictórios, lavatórios, cubas, caixas acopladas. Reparar vazamentos, substituir vedações.", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Esgoto e Pluviais",
+          itens: [
+            {id:"esg1", texto:"Inspecionar ralos, grelhas, caixas sifonadas, sifões. Solucionar entupimentos e vazamentos.", periodo:"A CADA 03 MESES"},
+            {id:"esg2", texto:"Inspecionar caixas de gordura, caixas de passagem, canaletas, drenos. Limpar caixas de gordura.", periodo:"A CADA 12 MESES"},
+          ]
+        }
+      ]
+    },
+    {
+      sistema: "SPCIP — Prevenção e Combate a Incêndio",
+      subsistemas: [
+        {
+          nome: "Sistema de Bombeamento de Emergência",
+          itens: [
+            {id:"bom1", texto:"Inspecionar bombas de incêndio, quadros de comando, pressostatos, chaves de fluxo, manômetros, válvulas. Executar testes de funcionamento (mín. 15 min.).", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Iluminação de Emergência",
+          itens: [
+            {id:"ile1", texto:"Verificar integridade das centrais de iluminação de emergência, luminárias, blocos autônomos. Efetuar testes de funcionamento, substituir peças danificadas.", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Portas Corta-Fogo",
+          itens: [
+            {id:"pcf1", texto:"Verificar integridade das portas corta-fogo. Testar abertura e fechamento automático. Verificar dobradiças, fechaduras, pinturas, folhas e selo de especificação.", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Rede de Hidrantes",
+          itens: [
+            {id:"hid_i1", texto:"Inspecionar tubulações, hidrantes e componentes (registros, portas, vidros, sinalizações, chaves storz, bicos). Revisar fixações, reparar vazamentos.", periodo:"A CADA 03 MESES"},
+            {id:"hid_i2", texto:"Inspecionar mangueiras conforme NBR 12779. Verificar conservação, enrolamento e condições de armazenagem.", periodo:"A CADA 03 MESES"},
+            {id:"hid_i3", texto:"Executar testes hidrostáticos nas mangueiras com emissão de relatórios/certificados, conforme NBR 12779.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Sprinklers (Chuveiros Automáticos)",
+          itens: [
+            {id:"spr1", texto:"Inspecionar tubulações, conexões, suportes, chuveiros, válvulas de controle, alarmes, manômetros. Ensaiar alarmes, chaves de fluxo e bombas.", periodo:"A CADA 03 MESES"},
+            {id:"spr2", texto:"Efetuar ensaios de drenos, investigar obstruções e lubrificar válvulas.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Extintores",
+          itens: [
+            {id:"ext_i1", texto:"Inspecionar extintores conforme NBR 12962. Verificar acesso, validade, condição do lacre, pressão do manômetro.", periodo:"A CADA 03 MESES"},
+            {id:"ext_i2", texto:"Executar manutenção (testes e recargas) com emissão de relatórios/certificados, conforme NBR 12962.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Alarme de Incêndio (SDAI)",
+          itens: [
+            {id:"sdai1", texto:"Verificar centrais de alarme, periféricos (botoeiras, sirenes, detectores de fumaça, sensores). Aferir tensões, baterias, testar funcionamento, limpar e corrigir programações.", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Sinalização de Emergência",
+          itens: [
+            {id:"sin1", texto:"Verificar estado de conservação de placas e pictogramas. Corrigir fixações e posicionamentos. Repor faltantes.", periodo:"A CADA 03 MESES"},
+          ]
+        }
+      ]
+    },
+    {
+      sistema: "Instalações e Sistemas Elétricos",
+      subsistemas: [
+        {
+          nome: "Subestações e Painéis Principais",
+          itens: [
+            {id:"ele1", texto:"Inspeção visual, medições termográficas e elétricas (tensão, corrente) dos elementos. Substituir componentes danificados, ajustes e reparos.", periodo:"A CADA 03 MESES"},
+            {id:"ele2", texto:"Manutenção preventiva anual conforme Anexo B.1 (transformadores, disjuntores, barramentos blindados, painéis).", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Sistema Fotovoltaico",
+          itens: [
+            {id:"ftv1", texto:"Inspecionar módulos fotovoltaicos, cabeamentos, conectores, microinversores, eletrocalhas. Verificar LED de status ECU-R e funcionamento do monitoramento remoto.", periodo:"A CADA 03 MESES"},
+            {id:"ftv2", texto:"Limpeza dos painéis fotovoltaicos conforme instruções do fabricante.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Quadros de Distribuição",
+          itens: [
+            {id:"qdr1", texto:"Inspeção visual, medições termográficas. Verificar compatibilidade entre condutores e proteções. Substituir elementos danificados.", periodo:"A CADA 03 MESES"},
+            {id:"qdr2", texto:"Reaperto de conexões, ajustes, limpeza, medições elétricas. Afixar etiqueta de manutenção e recompor identificações.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "Iluminação e Tomadas",
+          itens: [
+            {id:"ilu1", texto:"Inspecionar luminárias, lâmpadas, reatores, ignitores, interruptores, tomadas, no-breaks. Substituir componentes danificados.", periodo:"A CADA 12 MESES"},
+          ]
+        },
+        {
+          nome: "SPDA (Para-Raios)",
+          itens: [
+            {id:"spda1", texto:"Inspecionar malha de captação, descidas aparentes, caixas de aterramento e equalização. Reaperto de conexões acessíveis.", periodo:"A CADA 06 MESES"},
+            {id:"spda2", texto:"Inspecionar SPDA conforme NBR 5419. Emitir relatório/laudo técnico com testes de continuidade.", periodo:"A CADA 12 MESES"},
+          ]
+        }
+      ]
+    },
+    {
+      sistema: "Infraestrutura de Voz e Dados",
+      subsistemas: [
+        {
+          nome: "Cabeamento Estruturado",
+          itens: [
+            {id:"voz1", texto:"Inspecionar cabeamentos, CPDs, salas de telecomunicações, DGs, patch panels, racks. Ajustes e substituição de componentes danificados.", periodo:"A CADA 03 MESES"},
+            {id:"voz2", texto:"Limpeza interna e externa de aparelhos, central telefônica, racks e DGs.", periodo:"A CADA 12 MESES"},
+            {id:"voz3", texto:"Manutenção do sistema de telefonia fixa: ativação de ramais, atualização de firmware, reparo de tomadas, eliminação de ruídos, substituição de módulos avariados.", periodo:"A CADA 03 MESES"},
+          ]
+        }
+      ]
+    },
+    {
+      sistema: "Bombeamentos e Motorizações",
+      subsistemas: [
+        {
+          nome: "Sistemas de Bombeamento",
+          itens: [
+            {id:"bomb1", texto:"Inspecionar bombas de abastecimento, drenagem e pluviais, comandos e acessórios. Testes de funcionamento, medições elétricas, verificar alternância de bombas reservas.", periodo:"A CADA 03 MESES"},
+          ]
+        },
+        {
+          nome: "Motorizações",
+          itens: [
+            {id:"mot1", texto:"Inspecionar motorizações de portões e portas automatizadas, braços de acionamento, sensores. Testes de funcionamento, lubrificação.", periodo:"A CADA 03 MESES"},
+          ]
+        }
+      ]
+    },
+    {
+      sistema: "Infraestrutura de GLP",
+      subsistemas: [
+        {
+          nome: "Rede de GLP",
+          itens: [
+            {id:"glp1", texto:"Inspecionar centrais de distribuição, tubulações, registros, válvulas (abastecimento, regulagem, segurança, bloqueio, alívio), manômetros, mangueiras. Verificar ventilação dos abrigos.", periodo:"A CADA 03 MESES"},
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+// Grupo B = mesmo que A (mesmas atividades, mesma estrutura)
+ANEXO_B.B = JSON.parse(JSON.stringify(ANEXO_B.A));
+
+// Grupo C = versão simplificada
+ANEXO_B.C = [
+  {
+    sistema: "Instalações Civis",
+    subsistemas: [
+      {nome:"Coberturas", itens:[
+        {id:"c_cob1", texto:"Inspecionar calhas, rufos, telhas, engradamentos, impermeabilizações. Reparos nas vedações, fixações, limpeza e desentupimento.", periodo:"A CADA 06 MESES"},
+      ]},
+      {nome:"Fachadas", itens:[
+        {id:"c_fac1", texto:"Inspecionar fachadas: revestimentos, esquadrias externas, grades, toldos, vidros. Testes à percussão, ajustes e reparos.", periodo:"A CADA 06 MESES"},
+        {id:"c_fac2", texto:"Elaborar laudo técnico anual certificando condições de segurança das fachadas.", periodo:"A CADA 12 MESES"},
+      ]},
+      {nome:"Alvenarias e Estruturais", itens:[
+        {id:"c_alv1", texto:"Inspecionar alvenarias, elementos estruturais, verificando fissuras, trincas e armações expostas.", periodo:"A CADA 12 MESES"},
+        {id:"c_alv2", texto:"Inspecionar painéis divisórios, guarda-corpos, corrimãos, paredes em gesso.", periodo:"A CADA 06 MESES"},
+      ]},
+      {nome:"Revestimentos e Acabamentos", itens:[
+        {id:"c_rev1", texto:"Inspecionar revestimentos internos, forros, esquadrias internas, vidros, ferragens, fechaduras.", periodo:"A CADA 12 MESES"},
+      ]},
+      {nome:"Áreas Externas", itens:[
+        {id:"c_ext1", texto:"Inspecionar muros, gradis, portões, pisos externos, passeios, toldos, tampas de caixas.", periodo:"A CADA 12 MESES"},
+      ]}
+    ]
+  },
+  {
+    sistema: "Instalações Hidrossanitárias",
+    subsistemas: [
+      {nome:"Água Fria e Esgoto", itens:[
+        {id:"c_hid1", texto:"Inspecionar reservatórios, torneiras, válvulas, vasos sanitários, mictórios, lavatórios. Reparar vazamentos, solucionar entupimentos.", periodo:"A CADA 12 MESES"},
+        {id:"c_hid2", texto:"Inspecionar ralos, grelhas, caixas sifonadas, caixas de gordura, drenos. Limpar caixas de gordura.", periodo:"A CADA 12 MESES"},
+      ]}
+    ]
+  },
+  {
+    sistema: "SPCIP — Prevenção e Combate a Incêndio",
+    subsistemas: [
+      {nome:"Iluminação de Emergência", itens:[
+        {id:"c_ile1", texto:"Verificar luminárias de emergência e blocos autônomos. Testes de funcionamento, substituir peças danificadas.", periodo:"A CADA 06 MESES"},
+      ]},
+      {nome:"Extintores", itens:[
+        {id:"c_ext_i1", texto:"Inspecionar extintores conforme NBR 12962. Verificar acesso, validade e condições.", periodo:"A CADA 06 MESES"},
+        {id:"c_ext_i2", texto:"Manutenção (testes e recargas) com emissão de certificados, conforme NBR 12962.", periodo:"A CADA 12 MESES"},
+      ]},
+      {nome:"Sinalização de Emergência", itens:[
+        {id:"c_sin1", texto:"Verificar placas e pictogramas. Corrigir fixações e repor faltantes.", periodo:"A CADA 06 MESES"},
+      ]}
+    ]
+  },
+  {
+    sistema: "Instalações e Sistemas Elétricos",
+    subsistemas: [
+      {nome:"Entrada de Energia e Quadros", itens:[
+        {id:"c_ele1", texto:"Inspeção visual, medições termográficas e elétricas dos componentes. Substituir danificados.", periodo:"A CADA 06 MESES"},
+        {id:"c_ele2", texto:"Reaperto de conexões, ajustes, limpeza, medições elétricas. Afixar etiqueta de manutenção.", periodo:"A CADA 12 MESES"},
+      ]},
+      {nome:"Iluminação e Tomadas", itens:[
+        {id:"c_ilu1", texto:"Inspecionar luminárias, lâmpadas, tomadas, interruptores. Substituir componentes danificados.", periodo:"A CADA 12 MESES"},
+      ]}
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════════
+// MATERIAIS (Anexo H — amostra representativa)
+// ═══════════════════════════════════════════════════
+const MATERIAIS = [
+  {code:"1.1.1.1",desc:"Retirada de telha de fibrocimento, kalhetão e metálica",und:"M²"},
+  {code:"1.7.1",desc:"Telha em fibrocimento E=6mm",und:"M²"},
+  {code:"1.7.2",desc:"Telha cerâmica tipo francesa",und:"M²"},
+  {code:"2.1.1",desc:"Mangueira de incêndio tipo 1 - 40mm x 15m",und:"UN"},
+  {code:"2.1.2",desc:"Mangueira de incêndio tipo 2 - 65mm x 15m",und:"UN"},
+  {code:"2.2.1",desc:"Extintor CO2 6kg recarga",und:"UN"},
+  {code:"2.2.2",desc:"Extintor pó ABC 6kg recarga",und:"UN"},
+  {code:"2.3.1",desc:"Lâmpada LED tubular 18W",und:"UN"},
+  {code:"2.3.2",desc:"Luminária emergência bloco autônomo",und:"UN"},
+  {code:"2.4.1",desc:"Disjuntor monopolar 10A",und:"UN"},
+  {code:"2.4.2",desc:"Disjuntor bipolar 20A",und:"UN"},
+  {code:"2.4.3",desc:"DR interruptor diferencial residual 30mA",und:"UN"},
+  {code:"3.1.1",desc:"Registro de gaveta bruto 3/4\"",und:"UN"},
+  {code:"3.1.2",desc:"Válvula de descarga Hydra",und:"UN"},
+  {code:"3.1.3",desc:"Engate flexível 30cm",und:"UN"},
+  {code:"3.2.1",desc:"Boia para reservatório",und:"UN"},
+  {code:"4.1.1",desc:"Tinta acrílica premium 18L",und:"UN"},
+  {code:"4.1.2",desc:"Massa corrida PVA 25kg",und:"UN"},
+  {code:"4.2.1",desc:"Rejunte cimentício 2kg",und:"UN"},
+  {code:"4.3.1",desc:"Borracha vedação esquadria rolo 10m",und:"RL"},
+  {code:"5.1.1",desc:"Cadeado 40mm",und:"UN"},
+  {code:"5.1.2",desc:"Fechadura banheiro interna",und:"UN"},
+  {code:"5.2.1",desc:"Dobradiça 3x2,5 aço inox",und:"UN"},
+  {code:"6.1.1",desc:"Detector de fumaça convencional",und:"UN"},
+  {code:"6.1.2",desc:"Acionador manual de alarme",und:"UN"},
+  {code:"6.2.1",desc:"Bateria VRLA 12V 7Ah para SDAI",und:"UN"},
+  {code:"7.1.1",desc:"Patch cord RJ45 cat6 2m",und:"UN"},
+  {code:"7.1.2",desc:"Tomada de rede RJ45 fêmea cat6",und:"UN"},
+];
+
+// ═══════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════
+const COMARCAS = ["Arinos","Buenópolis","Montes Claros","Unaí","Januária","Pirapora","Brasília de Minas","Salinas","Bocaiuva"];
+const EDIFICACOES = {
+  "Arinos":["Fórum","CEJUSC","Posto Avançado"],
+  "Buenópolis":["Fórum"],
+  "Montes Claros":["Fórum Central","Anexo I","Anexo II","CEJUSC"],
+  "Unaí":["Fórum","CEJUSC"],
+  "Januária":["Fórum","Posto Avançado"],
+  "Pirapora":["Fórum"],
+  "Brasília de Minas":["Fórum"],
+  "Salinas":["Fórum","CEJUSC"],
+  "Bocaiuva":["Fórum"]
+};
+const GRUPOS_EDIF = {
+  "Fórum":"A","Fórum Central":"A","Anexo I":"B","Anexo II":"B",
+  "CEJUSC":"B","Posto Avançado":"C"
+};
+
+const TECNICOS = [
+  {id:1, nome:"Antônio da Silva", cargo:"Supervisor", iniciais:"AS"},
+  {id:2, nome:"Ricardo Fagundes", cargo:"Oficial", iniciais:"RF"},
+  {id:3, nome:"Edevaldo Costa", cargo:"Meio Oficial", iniciais:"EC"},
+];
+
+const HISTORICO_MOCK = [
+  {id:"OSE-004", tipo:"ose", comarca:"Arinos", edificacao:"CEJUSC", data:"06/03/2026", status:"enviado", grupo:"B"},
+  {id:"PER-012", tipo:"periodica", comarca:"Buenópolis", edificacao:"Fórum", data:"20/02/2026", status:"enviado", grupo:"A"},
+  {id:"FAC-003", tipo:"fachada", comarca:"Buenópolis", edificacao:"Fórum", data:"09/03/2026", status:"enviado", grupo:"A"},
+  {id:"PER-011", tipo:"periodica", comarca:"Arinos", edificacao:"Fórum", data:"15/02/2026", status:"rascunho", grupo:"A"},
+];
+
+// ═══════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════
+let state = {
+  tab: "home",
+  tecnico: TECNICOS[0],
+  offline: false,
+  newReport: {
+    step: 0,
+    tipo: null,
+    comarca: "",
+    edificacao: "",
+    grupo: "",
+    contrato: "TJMG – CT 017/2026",
+    dataOS: new Date().toLocaleDateString('pt-BR'),
+    inicio: "",
+    termino: "",
+    equipe: [],
+    objetivo: "",
+    atividades: "",
+    limitacoes: "Não houve.",
+    normas: "NBR 5674 - MANUTENÇÃO DE EDIFICAÇÕES - PROCEDIMENTOS.",
+    causas: "",
+    conclusao: "",
+    // checklist
+    checklist: {},
+    // fotos por seção
+    fotos: {},
+    // materiais
+    materiais: [],
+    // fachadas
+    fachadas: {frontal:"",lateralDir:"",lateralEsq:"",fundos:"",inspecaoVisual:"",analiseEstrutural:"",avaliacaoMateriais:"",analisePatologias:"",analiseSeguranca:"",recomendacoes:""},
+    // abas abertas
+    openSections: {},
+  },
+  matSearch: "",
+  histFilter: "todos",
+};
+
+const TIPO_META = {
+  ose: {label:"Vistoria Emergencial", badge:"badge-red", cor:"var(--r)", bg:"var(--r-light)", icon:"⚡",
+    steps:["Dados","Serviços","Fotos","Materiais","Concluir"]},
+  periodica: {label:"Manutenção Periódica", badge:"badge-green", cor:"var(--green)", bg:"var(--green-light)", icon:"🔧",
+    steps:["Dados","Checklist","Fotos","Materiais","Concluir"]},
+  programada: {label:"Interv. Técnica Programada", badge:"badge-blue", cor:"var(--blue)", bg:"var(--blue-light)", icon:"📋",
+    steps:["Dados","Serviços","Fotos","Materiais","Concluir"]},
+  fachada: {label:"Laudo de Fachada", badge:"badge-amber", cor:"var(--amber)", bg:"var(--amber-light)", icon:"🏛",
+    steps:["Dados","Fachadas","Fotos","Concluir"]},
+};
+
+// ═══════════════════════════════════════════════════
+// RENDER ENGINE
+// ═══════════════════════════════════════════════════
+function render(){
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  root.className = 'fade';
+
+  if(state.tab === 'new' && state.newReport.tipo && state.newReport.step >= 0){
+    root.appendChild(renderNewReportFlow());
+  } else {
+    root.appendChild(renderShell());
+  }
+}
+
+function renderShell(){
+  const wrap = el('div',{id:'root-shell',style:'display:flex;flex-direction:column;min-height:100vh'});
+
+  // HEADER
+  const hdr = el('div',{class:'hdr'});
+  const logo = el('div',{class:'hdr-logo'});
+  logo.innerHTML = 'RE<em>NO</em>VA';
+  const right = el('div',{class:'hdr-right'});
+  const offBtn = el('button',{class:'bnav-btn',style:'width:auto;padding:6px 10px;flex-direction:row;gap:6px;font-size:11px',title:'Simular offline'},state.offline?'● OFFLINE':'○ Online');
+  offBtn.style.color = state.offline ? 'var(--amber)' : '#555';
+  offBtn.onclick = ()=>{ state.offline=!state.offline; render(); };
+  const userBtn = el('div',{class:'hdr-user'},state.tecnico.iniciais);
+  userBtn.onclick=()=>{ state.tab='perfil'; render(); };
+  right.append(offBtn,userBtn);
+  hdr.append(logo,right);
+  wrap.appendChild(hdr);
+
+  // OFFLINE BAR
+  if(state.offline){
+    const ob = el('div',{class:'offline-bar'});
+    ob.innerHTML = '<div class="offline-dot"></div> Modo offline ativo — relatórios serão sincronizados ao reconectar';
+    wrap.appendChild(ob);
+  }
+
+  // CONTENT
+  const content = el('div',{class:'screen'});
+  if(state.tab==='home') content.appendChild(renderHome());
+  else if(state.tab==='historico') content.appendChild(renderHistorico());
+  else if(state.tab==='perfil') content.appendChild(renderPerfil());
+  else if(state.tab==='new' && !state.newReport.tipo) content.appendChild(renderSelectTipo());
+  wrap.appendChild(content);
+
+  // BOTTOM NAV
+  const bnav = el('div',{class:'bnav'});
+  [
+    {id:'home',label:'Início',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'},
+    {id:'new',label:'Novo',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'},
+    {id:'historico',label:'Relatórios',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'},
+    {id:'perfil',label:'Perfil',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+  ].forEach(({id,label,svg})=>{
+    const btn = el('button',{class:'bnav-btn'+(state.tab===id?' active':'')});
+    btn.innerHTML = svg+`<span>${label}</span>`;
+    btn.onclick=()=>{ state.tab=id; if(id==='new'){state.newReport={...state.newReport,tipo:null,step:0};} render(); };
+    bnav.appendChild(btn);
+  });
+  wrap.appendChild(bnav);
+  return wrap;
+}
+
+// ═══════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════
+function renderHome(){
+  const pad = el('div',{class:'pad fade'});
+
+  // greeting
+  const greet = el('div',{style:'margin-bottom:16px'});
+  greet.innerHTML = `<div style="font-family:var(--font-c);font-size:22px;font-weight:700">Olá, ${state.tecnico.nome.split(' ')[0]} 👋</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Contrato TJMG – CT 017/2026 · Região Norte</div>`;
+  pad.appendChild(greet);
+
+  // stats
+  const stats = el('div',{class:'stat-row'});
+  [{num:4,lbl:'Este mês'},{num:1,lbl:'Rascunhos'},{num:3,lbl:'Comarcas'}].forEach(({num,lbl})=>{
+    const b = el('div',{class:'stat-box'});
+    b.innerHTML = `<div class="stat-num">${num}</div><div class="stat-lbl">${lbl}</div>`;
+    stats.appendChild(b);
+  });
+  pad.appendChild(stats);
+
+  // novo relatorio
+  const secN = el('div',{class:'sec'},text('NOVO RELATÓRIO'));
+  pad.appendChild(secN);
+  const newCard = el('div',{class:'card',style:'cursor:pointer;border-color:var(--r);background:linear-gradient(135deg,#fff 60%,var(--r-light))'});
+  newCard.innerHTML = `<div class="card-body" style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;border-radius:10px;background:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div><div><div style="font-family:var(--font-c);font-size:16px;font-weight:700">Criar Relatório</div><div style="font-size:12px;color:var(--muted);margin-top:2px">OSE, Periódica, Programada ou Fachada</div></div><svg style="margin-left:auto;color:var(--muted)" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  newCard.onclick=()=>{ state.tab='new'; state.newReport={...state.newReport,tipo:null,step:0}; render(); };
+  pad.appendChild(newCard);
+
+  // recentes
+  const secR = el('div',{class:'sec',style:'margin-top:4px'},text('RECENTES'));
+  pad.appendChild(secR);
+  const recCard = el('div',{class:'card'});
+  const recBody = el('div',{class:'card-body',style:'padding:6px 16px'});
+  HISTORICO_MOCK.slice(0,3).forEach(r=>{
+    recBody.appendChild(renderHistItem(r));
+  });
+  recCard.appendChild(recBody);
+  pad.appendChild(recCard);
+
+  // offline card
+  if(state.offline){
+    const oc = el('div',{class:'card',style:'border-color:var(--amber)'});
+    oc.innerHTML = `<div class="card-body"><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px">📶</div><div><div style="font-family:var(--font-c);font-size:14px;font-weight:600;color:var(--amber)">1 relatório pendente de envio</div><div style="font-size:12px;color:var(--muted)">Será enviado automaticamente ao reconectar</div></div></div></div>`;
+    pad.appendChild(oc);
+  }
+
+  return pad;
+}
+
+// ═══════════════════════════════════════════════════
+// HISTORICO
+// ═══════════════════════════════════════════════════
+function renderHistorico(){
+  const pad = el('div',{class:'pad fade'});
+  const title = el('div',{style:'font-family:var(--font-c);font-size:20px;font-weight:700;margin-bottom:14px'},text('Relatórios'));
+
+  // filter
+  const frow = el('div',{style:'display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px'});
+  ['todos','ose','periodica','programada','fachada'].forEach(f=>{
+    const labels={todos:'Todos',ose:'OSE',periodica:'Periódica',programada:'Programada',fachada:'Fachada'};
+    const btn = el('button',{class:'btn btn-sm '+(state.histFilter===f?'btn-primary':'btn-outline'),style:'white-space:nowrap;flex-shrink:0'},text(labels[f]));
+    btn.onclick=()=>{ state.histFilter=f; render(); };
+    frow.appendChild(btn);
+  });
+
+  const filtered = state.histFilter==='todos' ? HISTORICO_MOCK : HISTORICO_MOCK.filter(r=>r.tipo===state.histFilter);
+
+  const card = el('div',{class:'card'});
+  const body = el('div',{class:'card-body',style:'padding:6px 16px'});
+  if(filtered.length===0){
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Nenhum relatório encontrado</div>';
+  } else {
+    filtered.forEach(r=>body.appendChild(renderHistItem(r)));
+  }
+  card.appendChild(body);
+
+  pad.append(title,frow,card);
+  return pad;
+}
+
+function renderHistItem(r){
+  const m = TIPO_META[r.tipo];
+  const item = el('div',{class:'list-item'});
+  const icon = el('div',{class:'list-icon',style:`background:${m.bg}`},text(m.icon));
+  const info = el('div',{class:'list-info'});
+  info.innerHTML = `<div class="list-name">${r.id} — ${r.edificacao}</div><div class="list-meta">${r.comarca} · ${r.data}</div>`;
+  const right = el('div',{style:'display:flex;flex-direction:column;align-items:flex-end;gap:4px'});
+  right.innerHTML = `<span class="badge ${m.badge}">${m.label}</span><span class="badge ${r.status==='enviado'?'badge-green':'badge-amber'}">${r.status==='enviado'?'Enviado':'Rascunho'}</span>`;
+  item.append(icon,info,right);
+  return item;
+}
+
+// ═══════════════════════════════════════════════════
+// PERFIL
+// ═══════════════════════════════════════════════════
+function renderPerfil(){
+  const pad = el('div',{class:'pad fade'});
+  pad.innerHTML = `
+    <div class="profile-avatar">${state.tecnico.iniciais}</div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-family:var(--font-c);font-size:20px;font-weight:700">${state.tecnico.nome}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${state.tecnico.cargo} · CREA 0605063047521</div>
+      <div style="margin-top:8px"><span class="badge badge-green">Ativo</span></div>
+    </div>
+    <div class="sec">TROCAR TÉCNICO</div>
+  `;
+  const card = el('div',{class:'card'});
+  const body = el('div',{class:'card-body',style:'padding:4px 16px'});
+  TECNICOS.forEach(t=>{
+    const item = el('div',{class:'list-item'});
+    item.style.cursor='pointer';
+    const av = el('div',{class:'hdr-user',style:`background:${state.tecnico.id===t.id?'var(--r)':'#888'};width:36px;height:36px;font-size:14px`},text(t.iniciais));
+    const info = el('div',{class:'list-info'});
+    info.innerHTML = `<div class="list-name">${t.nome}</div><div class="list-meta">${t.cargo}</div>`;
+    const chk = el('div',{style:`width:18px;height:18px;border-radius:50%;background:${state.tecnico.id===t.id?'var(--green)':'var(--border)'};display:flex;align-items:center;justify-content:center`});
+    if(state.tecnico.id===t.id) chk.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+    item.append(av,info,chk);
+    item.onclick=()=>{ state.tecnico=t; render(); };
+    body.appendChild(item);
+  });
+  card.appendChild(body);
+  pad.appendChild(card);
+
+  const sigCard = el('div',{class:'card',style:'margin-top:10px'});
+  sigCard.innerHTML = `<div class="card-header"><span class="card-title">Assinatura Digital</span><span class="badge badge-green">Configurada</span></div><div class="card-body"><div style="background:var(--surface);border-radius:7px;height:80px;display:flex;align-items:center;justify-content:center;font-size:22px;font-style:italic;color:var(--muted);font-family:Georgia,serif">${state.tecnico.nome.split(' ').slice(0,2).join(' ')}</div><div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Assinatura inserida automaticamente nos relatórios</div></div>`;
+  pad.appendChild(sigCard);
+
+  return pad;
+}
+
+// ═══════════════════════════════════════════════════
+// SELECT TIPO
+// ═══════════════════════════════════════════════════
+function renderSelectTipo(){
+  const pad = el('div',{class:'pad fade'});
+  pad.innerHTML = `<div style="font-family:var(--font-c);font-size:20px;font-weight:700;margin-bottom:4px">Novo Relatório</div><div style="font-size:12px;color:var(--muted);margin-bottom:16px">Selecione o tipo de atendimento</div>`;
+
+  const grid = el('div',{class:'rtype-grid'});
+  Object.entries(TIPO_META).forEach(([id,m])=>{
+    const card = el('div',{class:'rtype-card'});
+    const icon = el('div',{class:'rtype-icon',style:`background:${m.bg}`},text(m.icon));
+    const name = el('div',{class:'rtype-name'},text(m.label.replace(' Técnica Programada','').replace('Manutenção ','Manu.').replace('Vistoria ','Vistoria ')));
+    const desc = el('div',{class:'rtype-desc'});
+    const descs={ose:'Chamado emergencial, prazo 24h',periodica:'Itens do Anexo B por grupo',programada:'Intervenção planejada',fachada:'Laudo anual NBR 5674'};
+    desc.textContent = descs[id];
+    card.append(icon,name,desc);
+    card.onclick=()=>{ state.newReport.tipo=id; state.newReport.step=0; render(); };
+    grid.appendChild(card);
+  });
+  pad.appendChild(grid);
+  return pad;
+}
+
+// ═══════════════════════════════════════════════════
+// NEW REPORT FLOW
+// ═══════════════════════════════════════════════════
+function renderNewReportFlow(){
+  const wrap = el('div',{style:'display:flex;flex-direction:column;min-height:100vh'});
+  const nr = state.newReport;
+  const m = TIPO_META[nr.tipo];
+
+  // HEADER
+  const hdr = el('div',{class:'hdr'});
+  const back = el('button',{class:'hdr-back'});
+  back.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Voltar';
+  back.onclick=()=>{
+    if(nr.step===0){ state.newReport.tipo=null; }
+    else { state.newReport.step--; }
+    render();
+  };
+  const title = el('div',{class:'hdr-title'},text(m.label));
+  const badge = el('span',{class:'badge '+m.badge},text(m.icon));
+  hdr.append(back,title,badge);
+  wrap.appendChild(hdr);
+
+  // STEP BAR
+  const steps = m.steps;
+  const stepBar = el('div',{class:'step-bar'});
+  steps.forEach((s,i)=>{
+    const dot = el('div',{class:'step-dot '+(i<nr.step?'done':i===nr.step?'active':'todo')},text(i<nr.step?'✓':(i+1)));
+    stepBar.appendChild(dot);
+    if(i<steps.length-1){
+      const line = el('div',{class:'step-line '+(i<nr.step?'done':'todo')});
+      stepBar.appendChild(line);
+    }
+  });
+  wrap.appendChild(stepBar);
+
+  // CONTENT
+  const content = el('div',{class:'screen'});
+  const pad = el('div',{class:'pad fade'});
+
+  if(nr.tipo==='fachada'){
+    if(nr.step===0) pad.appendChild(renderStepDados());
+    else if(nr.step===1) pad.appendChild(renderStepFachadas());
+    else if(nr.step===2) pad.appendChild(renderStepFotos());
+    else if(nr.step===3) pad.appendChild(renderStepConcluir());
+  } else {
+    if(nr.step===0) pad.appendChild(renderStepDados());
+    else if(nr.step===1 && nr.tipo==='periodica') pad.appendChild(renderStepChecklist());
+    else if(nr.step===1) pad.appendChild(renderStepServicos());
+    else if(nr.step===2) pad.appendChild(renderStepFotos());
+    else if(nr.step===3) pad.appendChild(renderStepMateriais());
+    else if(nr.step===4) pad.appendChild(renderStepConcluir());
+  }
+
+  content.appendChild(pad);
+  wrap.appendChild(content);
+
+  // BOTTOM NAV (progress)
+  const bnav = el('div',{class:'bnav',style:'padding:10px 16px;justify-content:space-between;gap:10px'});
+  if(nr.step < steps.length - 1){
+    const nextBtn = el('button',{class:'btn btn-primary'},text('Próximo →'));
+    nextBtn.style.flex='1';
+    nextBtn.onclick=()=>{ state.newReport.step++; render(); };
+    bnav.appendChild(nextBtn);
+  }
+  wrap.appendChild(bnav);
+  return wrap;
+}
+
+// ─── STEP 0: DADOS ───────────────────────────────────
+function renderStepDados(){
+  const nr = state.newReport;
+  const frag = el('div');
+
+  frag.innerHTML = `<div style="font-family:var(--font-c);font-size:17px;font-weight:700;margin-bottom:14px">Identificação</div>`;
+
+  // Comarca
+  const fComarca = fieldSelect('Comarca','comarca', COMARCAS, nr.comarca, (v)=>{
+    state.newReport.comarca=v;
+    state.newReport.edificacao='';
+    state.newReport.grupo='';
+    render();
+  });
+  frag.appendChild(fComarca);
+
+  if(nr.comarca){
+    const edifs = EDIFICACOES[nr.comarca]||[];
+    const fEdif = fieldSelect('Edificação','edificacao', edifs, nr.edificacao, (v)=>{
+      state.newReport.edificacao=v;
+      state.newReport.grupo = GRUPOS_EDIF[v]||'A';
+      render();
+    });
+    frag.appendChild(fEdif);
+  }
+
+  if(nr.edificacao){
+    const gpDiv = el('div',{class:'field'});
+    gpDiv.innerHTML = `<label>Grupo da Edificação</label><div style="display:flex;gap:8px;margin-top:4px">
+      ${['A','B','C'].map(g=>`<div onclick="state.newReport.grupo='${g}';render()" style="flex:1;padding:10px;border:1.5px solid ${nr.grupo===g?'var(--r)':'var(--border)'};border-radius:7px;text-align:center;cursor:pointer;background:${nr.grupo===g?'var(--r-light)':'var(--card)'}"><div style="font-family:var(--font-c);font-size:18px;font-weight:700;color:${nr.grupo===g?'var(--r)':'var(--text)'}">${g}</div><div style="font-size:10px;color:var(--muted)">Grupo ${g}</div></div>`).join('')}
+    </div>`;
+    frag.appendChild(gpDiv);
+
+    // datas
+    const frow = el('div',{class:'field-row'});
+    frow.appendChild(fieldInput('Data da OS','dataOS','date', nr.dataOS.split('/').reverse().join('-'), v=>{state.newReport.dataOS=v.split('-').reverse().join('/');render();}));
+    frow.appendChild(fieldInput('Contrato','contrato','text', nr.contrato, v=>{state.newReport.contrato=v;}));
+    frag.appendChild(frow);
+
+    if(nr.tipo !== 'fachada'){
+      const frow2 = el('div',{class:'field-row'});
+      frow2.appendChild(fieldInput('Início','inicio','time', nr.inicio, v=>{state.newReport.inicio=v;}));
+      frow2.appendChild(fieldInput('Término','termino','time', nr.termino, v=>{state.newReport.termino=v;}));
+      frag.appendChild(frow2);
+
+      // equipe
+      const eqDiv = el('div',{class:'field'});
+      eqDiv.innerHTML = `<label>Equipe Executora</label>`;
+      TECNICOS.forEach(t=>{
+        const checked = nr.equipe.find(e=>e.id===t.id);
+        const row = el('div',{class:'chk-item'});
+        const box = el('div',{class:'chk-box'+(checked?' chk':'')});
+        if(checked) box.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+        box.onclick=()=>{
+          if(checked){ state.newReport.equipe = nr.equipe.filter(e=>e.id!==t.id); }
+          else { state.newReport.equipe = [...nr.equipe, t]; }
+          render();
+        };
+        const txt = el('div',{class:'chk-text'},text(`${t.nome} (${t.cargo})`));
+        row.append(box,txt);
+        eqDiv.appendChild(row);
+      });
+      frag.appendChild(eqDiv);
+
+      if(nr.tipo==='ose'){
+        frag.appendChild(fieldTextarea('Criação resumida / Objetivo',nr.objetivo,v=>{state.newReport.objetivo=v;}));
+      }
+    } else {
+      frag.appendChild(fieldTextarea('Objeto da Inspeção',nr.objetivo||'INSPEÇÃO DE FACHADAS DA EDIFICAÇÃO',v=>{state.newReport.objetivo=v;}));
+    }
+  }
+
+  return frag;
+}
+
+// ─── STEP 1 (OSE/PROG): SERVIÇOS ─────────────────────
+function renderStepServicos(){
+  const nr = state.newReport;
+  const frag = el('div');
+  frag.innerHTML = `<div style="font-family:var(--font-c);font-size:17px;font-weight:700;margin-bottom:14px">Serviços e Atividades</div>`;
+
+  frag.appendChild(fieldTextarea('Atividades desenvolvidas durante o atendimento',nr.atividades,v=>{state.newReport.atividades=v;},5));
+  frag.appendChild(fieldTextarea('Limitações técnicas',nr.limitacoes,v=>{state.newReport.limitacoes=v;}));
+  frag.appendChild(fieldTextarea('Normas pertinentes',nr.normas,v=>{state.newReport.normas=v;}));
+  if(nr.tipo==='ose'){
+    frag.appendChild(fieldTextarea('Possíveis causas dos danos (vistoria visual)',nr.causas,v=>{state.newReport.causas=v;}));
+  }
+  return frag;
+}
+
+// ─── STEP 1 (PERIÓDICA): CHECKLIST ANEXO B ───────────
+function renderStepChecklist(){
+  const nr = state.newReport;
+  const grupo = nr.grupo||'A';
+  const sistemas = ANEXO_B[grupo]||[];
+  const frag = el('div');
+
+  // summary
+  const totalItens = sistemas.reduce((a,s)=>a+s.subsistemas.reduce((b,ss)=>b+ss.itens.length,0),0);
+  const checked = Object.values(nr.checklist).filter(Boolean).length;
+  frag.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-family:var(--font-c);font-size:17px;font-weight:700">Checklist — Grupo ${grupo}</div>
+      <span class="badge badge-${checked===totalItens?'green':'gray'}">${checked}/${totalItens}</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Marque todos os itens inspecionados</div>
+  `;
+
+  // progress bar
+  const pct = totalItens>0 ? Math.round(checked/totalItens*100) : 0;
+  const prog = el('div',{style:'height:4px;background:var(--border);border-radius:2px;margin-bottom:16px;overflow:hidden'});
+  prog.innerHTML = `<div style="height:100%;width:${pct}%;background:var(--green);border-radius:2px;transition:width .3s"></div>`;
+  frag.appendChild(prog);
+
+  sistemas.forEach(s=>{
+    const sec = el('div',{class:'sys-section'});
+    const secTitle = el('div',{style:'font-family:var(--font-c);font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px'},text(s.sistema));
+    sec.appendChild(secTitle);
+
+    s.subsistemas.forEach(ss=>{
+      const ssDiv = el('div',{class:'sys-section'});
+      const openKey = ss.nome;
+      const isOpen = nr.openSections[openKey] !== false;
+      const checkedHere = ss.itens.filter(it=>nr.checklist[it.id]).length;
+
+      const ssHdr = el('div',{class:'sys-header'});
+      ssHdr.innerHTML = `<div><div class="sys-name">${ss.nome}</div><div class="sys-count">${checkedHere}/${ss.itens.length} itens</div></div><span class="sys-arrow ${isOpen?'open':''}">▼</span>`;
+      ssHdr.onclick=()=>{ state.newReport.openSections[openKey]=!isOpen; render(); };
+      ssDiv.appendChild(ssHdr);
+
+      if(isOpen){
+        const items = el('div',{class:'sys-items'});
+        ss.itens.forEach(it=>{
+          const row = el('div',{class:'chk-item'});
+          const box = el('div',{class:'chk-box'+(nr.checklist[it.id]?' chk':'')});
+          if(nr.checklist[it.id]) box.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+          box.onclick=()=>{ state.newReport.checklist[it.id]=!nr.checklist[it.id]; render(); };
+          const textDiv = el('div',{class:'chk-text'});
+          textDiv.innerHTML = `${it.texto}<br><span class="chk-period">${it.periodo}</span>`;
+          row.append(box,textDiv);
+          items.appendChild(row);
+        });
+        ssDiv.appendChild(items);
+      }
+      sec.appendChild(ssDiv);
+    });
+    frag.appendChild(sec);
+  });
+
+  return frag;
+}
+
+// ─── STEP 2: FACHADAS (só tipo fachada) ──────────────
+function renderStepFachadas(){
+  const nr = state.newReport;
+  const frag = el('div');
+  frag.innerHTML = `<div style="font-family:var(--font-c);font-size:17px;font-weight:700;margin-bottom:14px">Considerações por Fachada</div>`;
+
+  ['frontal','lateralDir','lateralEsq','fundos'].forEach(face=>{
+    const labels={frontal:'Fachada Frontal',lateralDir:'Lateral Direita',lateralEsq:'Lateral Esquerda',fundos:'Fundos'};
+    frag.appendChild(fieldTextarea(labels[face], nr.fachadas[face], v=>{state.newReport.fachadas[face]=v;}));
+  });
+
+  frag.innerHTML += `<div class="divider-label"><span>Considerações Finais</span></div>`;
+
+  ['inspecaoVisual','analiseEstrutural','avaliacaoMateriais','analisePatologias','analiseSeguranca','recomendacoes'].forEach(campo=>{
+    const labels={inspecaoVisual:'Inspeção Visual',analiseEstrutural:'Análise Estrutural',avaliacaoMateriais:'Avaliação de Materiais',analisePatologias:'Análise de Patologias',analiseSeguranca:'Análise de Segurança',recomendacoes:'Recomendações'};
+    frag.appendChild(fieldTextarea(labels[campo], nr.fachadas[campo], v=>{state.newReport.fachadas[campo]=v;}));
+  });
+
+  return frag;
+}
+
+// ─── STEP 2/3: FOTOS ─────────────────────────────────
+function renderStepFotos(){
+  const nr = state.newReport;
+  const frag = el('div');
+  frag.innerHTML = `<div style="font-family:var(--font-c);font-size:17px;font-weight:700;margin-bottom:4px">Registro Fotográfico</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Toque nos slots para adicionar fotos</div>`;
+
+  const secoes = nr.tipo === 'fachada'
+    ? [{key:'frontal',label:'Fachada Frontal',min:4},{key:'lateralDir',label:'Lateral Direita',min:4},{key:'lateralEsq',label:'Lateral Esquerda',min:4},{key:'fundos',label:'Fundos',min:4}]
+    : nr.tipo === 'ose'
+    ? [{key:'geral',label:'Registro Geral',min:4},{key:'danos',label:'Danos Identificados',min:2},{key:'rate',label:'RATE (formulário)',min:1}]
+    : [{key:'geral',label:'Registro Geral',min:3},{key:'durante',label:'Durante a Manutenção',min:2},{key:'apos',label:'Após a Manutenção',min:2}];
+
+  secoes.forEach(({key,label,min})=>{
+    if(!nr.fotos[key]) nr.fotos[key] = [];
+    const filled = nr.fotos[key].length;
+    const ok = filled >= min;
+
+    const sec = el('div',{class:'photo-section'});
+    const titleRow = el('div',{class:'photo-section-title'});
+    titleRow.innerHTML = `<span>${label}</span><span class="badge ${ok?'badge-green':'badge-gray'}">${filled}/${min} mín.</span>`;
+    sec.appendChild(titleRow);
+
+    const grid = el('div',{class:'photo-grid'});
+    // slots
+    const totalSlots = Math.max(min+1, filled+1, 6);
+    for(let i=0;i<totalSlots;i++){
+      const slot = el('div',{class:'photo-slot'+(i<filled?' filled':'')});
+      if(i<filled){
+        // show mock photo
+        const colors=['#E8D5C4','#C4D5E8','#D5E8C4','#E8C4D5','#D5C4E8'];
+        slot.style.background = colors[i%colors.length];
+        slot.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><div class="photo-ok"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+        const rmv = el('button',{style:'position:absolute;top:3px;left:3px;background:rgba(0,0,0,.5);border:none;color:#fff;border-radius:3px;width:16px;height:16px;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center'},text('✕'));
+        rmv.onclick=(e)=>{e.stopPropagation();state.newReport.fotos[key].splice(i,1);render();};
+        slot.appendChild(rmv);
+      } else {
+        slot.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span style="font-size:10px;color:var(--muted)">+ Foto</span>`;
+        slot.onclick=()=>{ if(!state.newReport.fotos[key]) state.newReport.fotos[key]=[]; state.newReport.fotos[key].push('foto_'+Date.now()); render(); };
+      }
+      grid.appendChild(slot);
+    }
+    sec.appendChild(grid);
+    frag.appendChild(sec);
+  });
+
+  return frag;
+}
+
+// ─── STEP 3: MATERIAIS ───────────────────────────────
+function renderStepMateriais(){
+  const nr = state.newReport;
+  const frag = el('div');
+  frag.innerHTML = `<div style="font-family:var(--font-c);font-size:17px;font-weight:700;margin-bottom:4px">Materiais e Peças</div><div style="font-size:12px;color:var(--muted);margin-bottom:12px">Registro para Planilha Orçamentária e RATE</div>`;
+
+  // adicionados
+  if(nr.materiais.length>0){
+    const addedLabel = el('div',{class:'sec'},text('ITENS ADICIONADOS'));
+    frag.appendChild(addedLabel);
+    nr.materiais.forEach((m,idx)=>{
+      const item = el('div',{class:'mat-item mat-added'});
+      item.innerHTML = `<span class="mat-code">${m.code}</span><div class="mat-desc">${m.desc}</div><div style="display:flex;align-items:center;gap:6px"><input class="mat-qty" type="number" value="${m.qty}" min="0.1" step="0.1" style="width:52px"/><span class="mat-und">${m.und}</span><button onclick="state.newReport.materiais.splice(${idx},1);render()" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:16px;padding:0">×</button></div>`;
+      item.querySelector('input').onchange=(e)=>{ state.newReport.materiais[idx].qty=parseFloat(e.target.value)||1; };
+      frag.appendChild(item);
+    });
+    const divider = el('div',{class:'divider-label'});
+    divider.innerHTML = '<span>ADICIONAR ITENS</span>';
+    frag.appendChild(divider);
+  } else {
+    const addLabel = el('div',{class:'sec'},text('BUSCAR MATERIAL'));
+    frag.appendChild(addLabel);
+  }
+
+  // search
+  const searchWrap = el('div',{class:'field'});
+  const searchInput = el('input',{class:'mat-search',type:'text',placeholder:'Buscar por código ou descrição...',value:state.matSearch});
+  searchInput.oninput=(e)=>{ state.matSearch=e.target.value; renderMatList(); };
+  searchWrap.appendChild(searchInput);
+  frag.appendChild(searchWrap);
+
+  const listWrap = el('div',{id:'mat-list'});
+  frag.appendChild(listWrap);
+
+  function renderMatList(){
+    listWrap.innerHTML='';
+    const q = state.matSearch.toLowerCase();
+    const filtered = q ? MATERIAIS.filter(m=>m.code.toLowerCase().includes(q)||m.desc.toLowerCase().includes(q)) : MATERIAIS.slice(0,12);
+    if(filtered.length===0){
+      listWrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Nenhum material encontrado</div>';
+    }
+    filtered.forEach(m=>{
+      const already = nr.materiais.find(x=>x.code===m.code);
+      const item = el('div',{class:'mat-item'+(already?' mat-added':'')});
+      item.innerHTML = `<span class="mat-code">${m.code}</span><div class="mat-desc">${m.desc}<br><span class="mat-und">${m.und}</span></div><button class="btn btn-sm ${already?'btn-danger':'btn-outline'}" style="flex-shrink:0">${already?'✓ Adicionado':'+ Adicionar'}</button>`;
+      if(!already){
+        item.querySelector('button').onclick=()=>{
+          state.newReport.materiais.push({...m,qty:1});
+          state.matSearch='';
+          render();
+        };
+      }
+      listWrap.appendChild(item);
+    });
+  }
+  renderMatList();
+
+  return frag;
+}
+
+// ─── STEP FINAL: CONCLUIR ────────────────────────────
+function renderStepConcluir(){
+  const nr = state.newReport;
+  const m = TIPO_META[nr.tipo];
+  const frag = el('div');
+
+  // summary
+  const sumCard = el('div',{class:'card',style:`border-left:4px solid ${m.cor}`});
+  const body = el('div',{class:'card-body'});
+
+  // num sequencial
+  const num = nr.tipo==='ose'?'OSE-005':nr.tipo==='periodica'?'PER-013':nr.tipo==='programada'?'ITP-007':'FAC-004';
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-family:var(--font-c);font-size:18px;font-weight:700">${num}</div>
+      <span class="badge ${m.badge}">${m.icon} ${m.label}</span>
+    </div>
+    <div class="divider" style="margin:8px 0"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div><span style="color:var(--muted)">Comarca</span><br><strong>${nr.comarca||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Edificação</span><br><strong>${nr.edificacao||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Grupo</span><br><strong>Grupo ${nr.grupo||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Data</span><br><strong>${nr.dataOS||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Técnico RT</span><br><strong>${state.tecnico.nome}</strong></div>
+      <div><span style="color:var(--muted)">Materiais</span><br><strong>${nr.materiais.length} itens</strong></div>
+    </div>
+  `;
+
+  if(nr.tipo==='periodica'){
+    const total = Object.keys(ANEXO_B[nr.grupo]||ANEXO_B.A).length;
+    const done = Object.values(nr.checklist).filter(Boolean).length;
+    body.innerHTML += `<div class="divider" style="margin:8px 0"></div><div style="display:flex;align-items:center;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Checklist executado</span><span class="badge badge-green">${done} itens marcados</span></div>`;
+  }
+
+  sumCard.appendChild(body);
+  frag.appendChild(sumCard);
+
+  // conclusao
+  frag.appendChild(fieldTextarea('Conclusão / Considerações finais',nr.conclusao||'Considerando a execução dos serviços e os resultados satisfatórios obtidos, atesta-se a eficácia das intervenções realizadas.',v=>{state.newReport.conclusao=v;}));
+
+  // documentos gerados
+  const docsCard = el('div',{class:'card',style:'margin-top:10px'});
+  docsCard.innerHTML = `<div class="card-header"><span class="card-title">Documentos que serão gerados</span></div>`;
+  const docsBody = el('div',{class:'card-body',style:'padding:8px 16px'});
+  const docs = [
+    {icon:'📄', nome:`Relatório ${m.label}`, desc:'PDF completo com fotos e assinatura'},
+    {icon:'📋', nome:'RATE', desc:'Relatório Técnico de Atividades Executadas (separado)'},
+  ];
+  if(nr.materiais.length>0) docs.push({icon:'📊', nome:'Planilha Orçamentária', desc:`${nr.materiais.length} itens do Anexo H`});
+  docs.forEach(d=>{
+    docsBody.innerHTML += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:18px">${d.icon}</span><div><div style="font-size:13px;font-weight:500">${d.nome}</div><div style="font-size:11px;color:var(--muted)">${d.desc}</div></div><span class="badge badge-green" style="margin-left:auto">Auto</span></div>`;
+  });
+  docsCard.appendChild(docsBody);
+  frag.appendChild(docsCard);
+
+  // envio
+  const envCard = el('div',{class:'card',style:'margin-top:10px'});
+  envCard.innerHTML = `<div class="card-header"><span class="card-title">Envio automático</span></div>`;
+  const envBody = el('div',{class:'card-body',style:'padding:8px 16px'});
+  [
+    {icon:'📧',txt:'E-mail para gestão TJMG'},
+    {icon:'☁️',txt:'Google Drive — pasta da comarca'},
+    {icon:state.offline?'⏳':'✅',txt:state.offline?'Aguardando conexão para envio':'Envio imediato ao finalizar'},
+  ].forEach(({icon,txt})=>{
+    envBody.innerHTML+=`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px"><span>${icon}</span><span>${txt}</span></div>`;
+  });
+  envCard.appendChild(envBody);
+  frag.appendChild(envCard);
+
+  // FINALIZAR BTN
+  const btn = el('button',{class:'btn btn-primary',style:'margin-top:16px;font-size:16px'},text('✓ Finalizar e Enviar Relatório'));
+  btn.onclick=()=>{
+    // add to history
+    const ids={ose:'OSE',periodica:'PER',programada:'ITP',fachada:'FAC'};
+    HISTORICO_MOCK.unshift({
+      id:ids[nr.tipo]+'-'+String(Math.floor(Math.random()*900)+100),
+      tipo:nr.tipo,
+      comarca:nr.comarca,
+      edificacao:nr.edificacao,
+      data:nr.dataOS,
+      status:state.offline?'rascunho':'enviado',
+      grupo:nr.grupo
+    });
+    state.tab='success';
+    state.newReport={tipo:null,step:0,comarca:'',edificacao:'',grupo:'',contrato:'TJMG – CT 017/2026',dataOS:new Date().toLocaleDateString('pt-BR'),inicio:'',termino:'',equipe:[],objetivo:'',atividades:'',limitacoes:'Não houve.',normas:'NBR 5674 - MANUTENÇÃO DE EDIFICAÇÕES - PROCEDIMENTOS.',causas:'',conclusao:'',checklist:{},fotos:{},materiais:[],fachadas:{frontal:'',lateralDir:'',lateralEsq:'',fundos:'',inspecaoVisual:'',analiseEstrutural:'',avaliacaoMateriais:'',analisePatologias:'',analiseSeguranca:'',recomendacoes:''},openSections:{}};
+    renderSuccess();
+  };
+  frag.appendChild(btn);
+
+  return frag;
+}
+
+function renderSuccess(){
+  const root = document.getElementById('root');
+  root.innerHTML='';
+  const wrap = el('div',{style:'display:flex;flex-direction:column;min-height:100vh'});
+  const hdr = el('div',{class:'hdr'});
+  hdr.innerHTML='<div class="hdr-logo">RE<em style="color:var(--r);font-style:normal">NO</em>VA</div>';
+  wrap.appendChild(hdr);
+  const sw = el('div',{class:'success-wrap fade'});
+  sw.innerHTML=`
+    <div class="success-icon" style="background:var(--green-light)">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="success-title">Relatório Enviado!</div>
+    <div class="success-sub">${state.offline?'Salvo localmente. Será sincronizado automaticamente ao reconectar.':'Relatório, RATE e planilha orçamentária foram enviados ao Google Drive e por e-mail para a gestão TJMG.'}</div>
+    <button class="btn btn-primary" onclick="state.tab='home';render()" style="max-width:260px">Voltar ao Início</button>
+    <button class="btn btn-outline" onclick="state.tab='historico';render()" style="max-width:260px;margin-top:10px">Ver Relatórios</button>
+  `;
+  wrap.appendChild(sw);
+  root.appendChild(wrap);
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function el(tag, attrs={}, child=null){
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='class') e.className=v;
+    else if(k==='style') e.style.cssText=v;
+    else e.setAttribute(k,v);
+  });
+  if(child) e.appendChild(child);
+  return e;
+}
+function text(t){ return document.createTextNode(t); }
+
+function fieldInput(label,id,type,val,onChange){
+  const wrap = el('div',{class:'field'});
+  const lbl = el('label',{},text(label));
+  const inp = el('input',{type,value:val||''});
+  inp.onchange=(e)=>onChange(e.target.value);
+  wrap.append(lbl,inp);
+  return wrap;
+}
+
+function fieldSelect(label,id,opts,val,onChange){
+  const wrap = el('div',{class:'field'});
+  const lbl = el('label',{},text(label));
+  const sel = el('select');
+  sel.innerHTML = `<option value="">Selecione...</option>` + opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('');
+  sel.onchange=(e)=>onChange(e.target.value);
+  wrap.append(lbl,sel);
+  return wrap;
+}
+
+function fieldTextarea(label,val,onChange,rows=3){
+  const wrap = el('div',{class:'field'});
+  const lbl = el('label',{},text(label));
+  const ta = el('textarea',{rows});
+  ta.value = val||'';
+  ta.onchange=(e)=>onChange(e.target.value);
+  ta.oninput=(e)=>onChange(e.target.value);
+  wrap.append(lbl,ta);
+  return wrap;
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
