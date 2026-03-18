@@ -494,6 +494,18 @@ function chevR(){return '<svg width="14" height="14" viewBox="0 0 24 24" fill="n
 // ═══════════════════════════════════════════════════
 const SUPA_URL = 'https://slojqcgmdaenphbwxcwr.supabase.co';
 const SUPA_KEY = 'sb_publishable_qcy-uJPeeGtR1rDh_RO8lQ_VIKHZENv';
+
+// ── KEEP ALIVE — evita que o Supabase pause no plano gratuito ──
+function supaKeepAlive(){
+ if(!SUPA_URL||!SUPA_KEY) return;
+ fetch(SUPA_URL+'/rest/v1/drafts?limit=1', {
+  headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+ }).then(()=>console.log('Supabase keep-alive ✓')).catch(()=>{});
+}
+// Ping ao abrir o app
+supaKeepAlive();
+// Ping a cada 4 dias (345600000 ms)
+setInterval(supaKeepAlive, 345600000);
 let supaChannel = null;
 
 function gerarSessao(comarca, edificacao, data){
