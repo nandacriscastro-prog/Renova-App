@@ -1957,57 +1957,59 @@ function stepFotos(){
   secs.forEach(({k,label,min})=>{
    if(!nr.ft[k]) nr.ft[k]=[];
    const filled=nr.ft[k].length;
-   const ok=filled>=min;
+   const ok=filled>=(min||0);
    const sec=h('div'); sec.style.marginBottom='16px';
-   const isOSP=(nr.tp==='programada');
-   sec.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${isOSP?'4':'8'}px"><div><div style="font-size:13px;font-weight:700">${label}</div>${isOSP?`<div style="font-size:11px;color:var(--mu)">Fotos desta etapa da execução</div>`:''}</div><span class="badge bg">${filled} foto${filled!==1?'s':''}</span></div>`;
-   const pg=h('div','pg');
-   (nr.ft[k]||[]).forEach((f,i)=>{
-    const slot=h('div','ps fl');
-    const fObj = typeof f === 'object' ? f : null;
-    if(fObj && fObj.url){
-     slot.style.backgroundImage = `url(${fObj.url})`;
-     slot.style.backgroundSize = 'cover';
-     slot.style.backgroundPosition = 'center';
-    } else {
-     const cols=['#E8D5C4','#C4D5E8','#D5E8C4','#E8C4D5','#D5C4E8','#C4E8D5'];
-     slot.style.background=cols[i%cols.length];
-    }
-    slot.innerHTML=`<div style="position:absolute;bottom:3px;right:3px;width:14px;height:14px;background:var(--gn);border-radius:50%;display:flex;align-items:center;justify-content:center">${chkIcon()}</div><div style="position:absolute;top:2px;right:2px;font-size:9px;background:rgba(0,0,0,.4);color:#fff;border-radius:2px;padding:0 3px">${i+1}</div>`;
-    const rm=h('button','','✕');rm.style.cssText='position:absolute;top:2px;left:2px;background:rgba(0,0,0,.5);border:none;color:#fff;border-radius:3px;width:15px;height:15px;cursor:pointer;font-size:8px;line-height:1';
-    rm.onclick=(e)=>{e.stopPropagation();S.nr.ft[k].splice(i,1);R();};t.appendChild(rm); pg.appendChild(slot);
-   });
-   const _btnFoto=h('button');
-   _btnFoto.type='button';
-   _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
-   _btnFoto.textContent='+ Foto';
-   _btnFoto.onclick=function(){
-    const _inp=document.createElement('input');
+
+   // Header
+   const secHdr=h('div');
+   secHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
+   secHdr.innerHTML='<div><div style="font-size:13px;font-weight:700">'+label+'</div><div style="font-size:11px;color:var(--mu)">Fotos desta etapa</div></div>';
+   const cntBadge=h('span','badge '+(ok?'bg':'bgr'));
+   cntBadge.textContent=filled+' foto'+(filled!==1?'s':'');
+   secHdr.appendChild(cntBadge);
+   sec.appendChild(secHdr);
+
+   // Thumbs
+   if(filled>0){
+    const thumbRow=h('div');thumbRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px';
+    nr.ft[k].forEach((f,i)=>{
+     const thumb=h('div');thumb.style.cssText='position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;background:var(--bd)';
+     if(f&&f.url){thumb.style.backgroundImage='url('+f.url+')';thumb.style.backgroundSize='cover';thumb.style.backgroundPosition='center';}
+     const rm=h('button','','✕');rm.type='button';
+     rm.style.cssText='position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:3px;width:16px;height:16px;cursor:pointer;font-size:9px;line-height:1';
+     rm.onclick=(e)=>{e.stopPropagation();S.nr.ft[k].splice(i,1);saveDraft();R();};
+     thumb.appendChild(rm);thumbRow.appendChild(thumb);
+    });
+    sec.appendChild(thumbRow);
+   }
+
+   // Add foto button — same as galBtn2 pattern
+   const addFotoBtn=h('button');
+   addFotoBtn.type='button';
+   addFotoBtn.style.cssText='padding:8px 16px;border:1.5px dashed var(--gn);border-radius:8px;background:none;font-size:12px;font-weight:700;cursor:pointer;color:var(--gn);font-family:inherit';
+   addFotoBtn.textContent='+ Adicionar Foto';
+   addFotoBtn.onclick=function(){
+    alert('clicou!'); const _inp=document.createElement('input');
     _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
     _inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0';
     _inp.onchange=function(){
      const files=Array.from(_inp.files||[]);
-     let pending=files.length;
-     if(!pending)return;
-     files.forEach(function(f){
-      const r=new FileReader();
-      r.onload=function(e){
+     let pending=files.length;if(!pending)return;
+     files.forEach(function(file){
+      const rd=new FileReader();
+      rd.onload=function(ev){
        if(!S.nr.ft[k])S.nr.ft[k]=[];
-       S.nr.ft[k].push({url:e.target.result,nome:f.name,ts:Date.now()});
+       S.nr.ft[k].push({url:ev.target.result,nome:file.name,ts:Date.now()});
        pending--;if(pending===0){saveDraft();R();}
-      };
-      r.readAsDataURL(f);
+      };rd.readAsDataURL(file);
      });
-     document.body.removeChild(_inp);
+     try{document.body.removeChild(_inp);}catch(e){}
     };
     document.body.appendChild(_inp);
     _inp.click();
    };
-   pg.appendChild(_btnFoto);
-   const cnt=h('div');
-   cnt.style.cssText='font-size:11px;color:var(--mu);margin-top:5px;display:flex;align-items:center;justify-content:space-between';
-   cnt.innerHTML=`<span>${filled} foto${filled!==1?'s':''} adicionada${filled!==1?'s':''} ${ok?'<span style="color:var(--gn)">✓</span>':'<span style="color:var(--r)">(mín. '+min+')</span>'}</span>${filled>0?'<button onclick="S.nr.ft[\''+k+'\'].pop();R()" style="background:none;border:none;color:var(--mu);font-size:10px;cursor:pointer;font-family:inherit">Remover última</button>':''}`;
-   sec.appendChild(pg); sec.appendChild(cnt); d.appendChild(sec);
+   sec.appendChild(addFotoBtn);
+   d.appendChild(sec);
   });
  }
 
