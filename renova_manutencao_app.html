@@ -1898,7 +1898,7 @@ function stepFotos(){
    const _btnFoto=h('button');
    _btnFoto.type='button';
    _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
-   _btnFoto.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';
+   _btnFoto.textContent='+ Foto';
    _btnFoto.onclick=function(){
     const _inp=document.createElement('input');
     _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
@@ -1980,7 +1980,7 @@ function stepFotos(){
    const _btnFoto=h('button');
    _btnFoto.type='button';
    _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
-   _btnFoto.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';
+   _btnFoto.textContent='+ Foto';
    _btnFoto.onclick=function(){
     const _inp=document.createElement('input');
     _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
