@@ -361,7 +361,7 @@ const HIST = [
 ];
 const TM = {
  ose:{l:"Vistoria Emergencial",bk:"br",ic:"⚡",steps:["Dados","Serviços","Fotos","Materiais","Concluir"]},
- periodica:{l:"Manutenção Periódica",bk:"bg",ic:"🔧",steps:["Dados","Fotos","Checklist","Materiais","Concluir"]},
+ periodica:{l:"Manutenção Periódica",bk:"bg",ic:"🔧",steps:["Dados","Checklist","Materiais","Concluir"]},
  programada:{l:"OS Programada",bk:"bb",ic:"📋",steps:["Dados / OS","Atividades","Fotos","Materiais","Concluir"]},
  fachada:{l:"Laudo de Fachada",bk:"ba",ic:"🏛",steps:["Dados","Fachadas","Fotos","Concluir"]},
  spda:{l:"Laudo SPDA",bk:"bb",ic:"⚡",steps:["Dados","Inspeção","Medições","Concluir"]},
@@ -1246,8 +1246,9 @@ function renderFlow(app){
   else if(nr.step===3)pad.appendChild(stepConcluir());
  } else {
   if(nr.step===0)pad.appendChild(stepDados());
-  else if(nr.step===1&&nr.tp==='periodica')pad.appendChild(stepFotos());
-  else if(nr.step===2&&nr.tp==='periodica')pad.appendChild(stepChecklist());
+  else if(nr.step===1&&nr.tp==='periodica')pad.appendChild(stepChecklist());
+  else if(nr.step===2&&nr.tp==='periodica')pad.appendChild(stepMateriais());
+  else if(nr.step===3&&nr.tp==='periodica')pad.appendChild(stepConcluir());
   else if(nr.step===1)pad.appendChild(stepServicos());
   else if(nr.step===2)pad.appendChild(stepFotos());
   else if(nr.step===3)pad.appendChild(stepMateriais());
@@ -2411,6 +2412,52 @@ function stepChecklist(){
  const sis=AB[g]||[];
  const d=h('div');
 
+ // ── FOTOS DA EDIFICAÇÃO (movidas da etapa 2) ──────────────
+ if(!nr.ft) S.nr.ft={};
+ const capaSecs=[
+  {k:'capa_fachada', label:'Fachada Principal', dica:'Foto frontal da edificação'},
+  {k:'capa_entrada', label:'Entrada / Acesso',  dica:'Portão ou hall de entrada'},
+  {k:'capa_geral',   label:'Vista Geral',        dica:'Área interna ou pátio'},
+ ];
+ const capaDiv=h('div');
+ capaDiv.style.cssText='background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:14px';
+ const capaTit=h('div');
+ capaTit.style.cssText='font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);margin-bottom:10px';
+ capaTit.textContent='📷 Fotos da Edificação (Capa do Relatório)';
+ capaDiv.appendChild(capaTit);
+ capaSecs.forEach(({k,label,dica})=>{
+  if(!nr.ft[k]) S.nr.ft[k]=[];
+  const row=h('div');
+  row.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:8px';
+  const lbl=h('div');lbl.style.flex='1';
+  lbl.innerHTML='<div style="font-size:12px;font-weight:700">'+label+'</div><div style="font-size:10px;color:var(--mu)">'+dica+'</div>';
+  const count=h('span');count.style.cssText='font-size:11px;color:'+(nr.ft[k].length>0?'var(--gn)':'var(--mu)');
+  count.textContent=nr.ft[k].length+' foto'+(nr.ft[k].length!==1?'s':'');
+  const galBtn2=h('button');
+  galBtn2.type='button';
+  galBtn2.style.cssText='padding:6px 12px;border:1.5px dashed var(--gn);border-radius:8px;background:none;font-size:11px;font-weight:700;cursor:pointer;color:var(--gn);font-family:inherit';
+  galBtn2.textContent='+ Foto';
+  galBtn2.onclick=()=>{abrirGaleria((url,nome)=>{S.nr.ft[k].push({url,nome,ts:Date.now()});saveDraft();R();});};
+  row.append(lbl,count,galBtn2);
+  capaDiv.appendChild(row);
+  // Show thumbnails
+  if(nr.ft[k].length>0){
+   const thumbRow=h('div');thumbRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px';
+   nr.ft[k].forEach((f,i)=>{
+    const thumb=h('div');thumb.style.cssText='position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden;background:#ddd';
+    if(f&&f.url) thumb.style.backgroundImage='url('+f.url+')';
+    thumb.style.backgroundSize='cover';thumb.style.backgroundPosition='center';
+    const rm=h('button','','✕');rm.type='button';
+    rm.style.cssText='position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:3px;width:14px;height:14px;cursor:pointer;font-size:8px;line-height:1';
+    rm.onclick=(e)=>{e.stopPropagation();S.nr.ft[k].splice(i,1);saveDraft();R();};
+    thumb.appendChild(rm);thumbRow.appendChild(thumb);
+   });
+   capaDiv.appendChild(thumbRow);
+  }
+ });
+ d.appendChild(capaDiv);
+ // ── FIM FOTOS DA EDIFICAÇÃO ───────────────────────────────
+
  // GLP auto N/A
  const glpIds=['g1'];
  glpIds.forEach(id=>{ if(!nr.ck[id]) S.nr.ck[id]='A'; });
@@ -2737,7 +2784,7 @@ function stepConcluir(){
   const stepMap={ose:1,programada:1,fachada:1,periodica:1};
   const goBtn=h('button','btn bp',nr.tp==='periodica'?'→ Ir para o Checklist':'→ Completar pendências');
   goBtn.style.cssText='margin:0 16px 16px;width:calc(100% - 32px);padding:11px;font-size:14px;font-weight:700';
-  goBtn.onclick=()=>{S.nr.step=nr.tp==='periodica'?2:(stepMap[nr.tp]||1);saveDraft();R();};
+  goBtn.onclick=()=>{S.nr.step=nr.tp==='periodica'?1:(stepMap[nr.tp]||1);saveDraft();R();};
   blockCard.appendChild(goBtn);
   d.appendChild(blockCard);
 
