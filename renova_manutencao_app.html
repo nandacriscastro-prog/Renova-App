@@ -1848,7 +1848,7 @@ function stepFotos(){
  if(nr.tp==='periodica'){
   d.innerHTML=`
    <div style="font-size:17px;font-weight:900;margin-bottom:4px">Fotos da Edificação</div>
-   <div style="font-size:12px;color:var(--mu);margin-bottom:6px">Aparecem na capa do relatório. As fotos por atividade ficam dentro de cada item do checklist.</div>
+   <div style="font-size:12px;color:var(--mu);margin-bottom:6px">Fotos gerais da edificação antes de iniciar a vistoria.</div>
    <div style="background:var(--bll);border-radius:8px;padding:10px 12px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
     <span style="font-size:16px">ℹ️</span>
     <span style="font-size:12px;color:var(--bl)">Tire fotos da fachada, entrada e visão geral antes de iniciar a vistoria</span>
@@ -1922,7 +1922,7 @@ function stepFotos(){
    return d;
   }
 
-  d.innerHTML=`<div style="font-size:17px;font-weight:900;margin-bottom:4px">Registro Fotográfico</div><div style="font-size:12px;color:var(--mu);margin-bottom:14px">Toque nos slots para adicionar fotos</div>`;
+  d.innerHTML=`<div style="font-size:17px;font-weight:900;margin-bottom:4px">Registro Fotográfico</div><div style="font-size:12px;color:var(--mu);margin-bottom:14px">Adicione fotos do atendimento</div>`;
 
   const secs=nr.tp==='programada'
    ?[{k:'insp',label:'Inspeção / Diagnóstico',min:0},{k:'exec',label:'Execução dos Serviços',min:0},{k:'teste',label:'Teste / Resultado Final',min:0},{k:'rate',label:'RATE (formulário)',min:0}]
@@ -2423,7 +2423,7 @@ function stepChecklist(){
  capaDiv.style.cssText='background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:14px';
  const capaTit=h('div');
  capaTit.style.cssText='font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);margin-bottom:10px';
- capaTit.textContent='📷 Fotos da Edificação (Capa do Relatório)';
+ capaTit.textContent='📷 Fotos da Edificação';
  capaDiv.appendChild(capaTit);
  capaSecs.forEach(({k,label,dica})=>{
   if(!nr.ft[k]) S.nr.ft[k]=[];
@@ -2682,12 +2682,9 @@ function stepConcluir(){
  d.appendChild(ta('Conclusão / Considerações finais',nr.ccl||nr.tp==='programada'?`Após o diagnóstico das anomalias identificadas, foram executados os procedimentos corretivos conforme as boas práticas de manutenção. Concluídos os serviços, o sistema apresentou desempenho satisfatório, atendendo aos critérios operacionais exigidos. Dessa forma, declara-se finalizada a Ordem de Serviço Programada (OSP) nº ${nr.numOS||'___'}, com o restabelecimento pleno das condições de funcionamento.`:'Considerando a execução dos serviços e os resultados obtidos, atesta-se a eficácia das intervenções realizadas.',v=>{S.nr.ccl=v;}));
  // docs
  const dc=h('div','card','');
- dc.innerHTML=`<div class="ch"><span class="ct">Documentos gerados automaticamente</span></div><div class="cb" style="padding:8px 16px"><div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><span style="font-size:18px">📄</span><div style="flex:1"><div style="font-size:13px;font-weight:600">Relatório ${m.l}</div><div style="font-size:11px;color:var(--mu)">PDF completo com fotos e assinatura</div></div><span class="badge bg">Auto</span></div><div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><span style="font-size:18px">📋</span><div style="flex:1"><div style="font-size:13px;font-weight:600">RATE</div><div style="font-size:11px;color:var(--mu)">Documento separado — Atividades Executadas</div></div><span class="badge bg">Auto</span></div>${nr.mats.length?`<div style="display:flex;align-items:center;gap:10px;padding:8px 0"><span style="font-size:18px">📊</span><div style="flex:1"><div style="font-size:13px;font-weight:600">Planilha Orçamentária</div><div style="font-size:11px;color:var(--mu)">${nr.mats.length} itens do Anexo H</div></div><span class="badge bg">Auto</span></div>`:''}</div>${(nr.anexos||[]).length>0?`<div style="display:flex;align-items:center;gap:10px;padding:8px 0"><span style="font-size:18px">📎</span><div style="flex:1"><div style="font-size:13px;font-weight:600">Anexos</div><div style="font-size:11px;color:var(--mu)">${(nr.anexos||[]).length} arquivo${(nr.anexos||[]).length!==1?"s":""} incluído${(nr.anexos||[]).length!==1?"s":""}</div></div><span class="badge bg">Incluído</span></div>`:""}</div>`;
+ dc.innerHTML=`<div class="ch"><span class="ct">Documentos</span></div><div class="cb" style="padding:8px 16px"><div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><span style="font-size:18px">📄</span><div style="flex:1"><div style="font-size:13px;font-weight:600">Relatório ${m.l}</div><div style="font-size:11px;color:var(--mu)">Gerado automaticamente</div></div><span class="badge bg">Auto</span></div><div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><span style="font-size:18px">📋</span><div style="flex:1"><div style="font-size:13px;font-weight:600">RATE</div><div style="font-size:11px;color:var(--mu)">Documento separado — Atividades Executadas</div></div><span class="badge bg">Auto</span></div>${nr.mats.length?`<div style="display:flex;align-items:center;gap:10px;padding:8px 0"><span style="font-size:18px">📊</span><div style="flex:1"><div style="font-size:13px;font-weight:600">Planilha Orçamentária</div><div style="font-size:11px;color:var(--mu)">${nr.mats.length} itens do Anexo H</div></div><span class="badge bg">Auto</span></div>`:''}</div>${(nr.anexos||[]).length>0?`<div style="display:flex;align-items:center;gap:10px;padding:8px 0"><span style="font-size:18px">📎</span><div style="flex:1"><div style="font-size:13px;font-weight:600">Anexos</div><div style="font-size:11px;color:var(--mu)">${(nr.anexos||[]).length} arquivo${(nr.anexos||[]).length!==1?"s":""} incluído${(nr.anexos||[]).length!==1?"s":""}</div></div><span class="badge bg">Incluído</span></div>`:""}</div>`;
  d.appendChild(dc);
- // envio
- const ec=h('div','card','');
- ec.innerHTML=`<div class="ch"><span class="ct">Envio automático</span></div><div class="cb" style="padding:8px 16px"><div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px"><span>📧</span> E-mail para gestão TJMG</div><div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px"><span>☁️</span> Google Drive — pasta da comarca</div><div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px"><span>${S.offline?'⏳':'✅'}</span> ${S.offline?'Aguardando conexão para envio':'Envio imediato ao finalizar'}</div></div>`;
- d.appendChild(ec);
+
  // btn
  // check completion — all types
  const allIt=(AB[nr.gr||'A']||[]).flatMap(s=>s.ss.flatMap(ss=>ss.it));
@@ -2789,7 +2786,7 @@ function stepConcluir(){
   d.appendChild(blockCard);
 
   // save and exit
-  const saveBtn=h('button','btn bo','💾 Salvar rascunho e sair');
+  const saveBtn=h('button','btn bo','💾 Salvar e sair');
   saveBtn.style.marginTop='10px';
   saveBtn.onclick=()=>{saveDraft();S.tab='home';stopAutoSave();R();};
   d.appendChild(saveBtn);
@@ -2800,7 +2797,7 @@ function stepConcluir(){
   doneCard.style.cssText='background:var(--gl);border:1.5px solid var(--gn);border-radius:9px;padding:12px 14px;margin-top:16px;display:flex;align-items:center;gap:10px';
   doneCard.innerHTML=`<span style="font-size:22px">✅</span><div><div style="font-size:14px;font-weight:900;color:var(--gn)">Relatório completo!</div><div style="font-size:12px;color:var(--gn);margin-top:1px">Todas as pendências foram resolvidas. Pronto para envio.</div></div>`;
   d.appendChild(doneCard);
-  const btn=h('button','btn bp','✓ Finalizar e Enviar Relatório'); btn.style.marginTop='16px';
+  const btn=h('button','btn bp','✓ Finalizar e Enviar'); btn.style.marginTop='16px';
   btn.onclick=()=>{
    HIST.unshift({id:num,tp:nr.tp,co:nr.co,ed:nr.ed,dt:nr.dt||nr.dtIni||new Date().toLocaleDateString('pt-BR'),st:S.offline?'rascunho':'enviado',numOS:nr.numOS||''});
    deleteDraft(draftKey(nr));
@@ -2829,9 +2826,9 @@ function renderSuccess(app){
  const hdr=h('div','hdr','<div class="logo">RE<b>NO</b>VA</div>');
  app.appendChild(hdr);
  const sw=h('div','sw');
- sw.innerHTML=`<div class="si"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stl">Relatório Enviado!</div><div class="sst">${S.offline?'Salvo localmente. Será sincronizado ao reconectar.':'Relatório, RATE e planilha enviados ao Google Drive e por e-mail para a gestão TJMG.'}</div>`;
+ sw.innerHTML=`<div class="si"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stl">Vistoria finalizada!</div><div class="sst">Registro salvo com sucesso.</div>`;
  const b1=h('button','btn bp','Voltar ao Início'); b1.style.maxWidth='260px'; b1.onclick=()=>{S.tab='home';R();};
- const b2=h('button','btn bo','Ver Relatórios'); b2.style.cssText='max-width:260px;margin-top:10px'; b2.onclick=()=>{S.tab='historico';R();};
+ const b2=h('button','btn bo','Histórico'); b2.style.cssText='max-width:260px;margin-top:10px'; b2.onclick=()=>{S.tab='historico';R();};
  sw.append(b1,b2); app.appendChild(sw);
 }
 
