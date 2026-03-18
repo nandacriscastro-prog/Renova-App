@@ -1,4 +1,4 @@
-const CACHE = 'renova-v10';
+const CACHE = 'renova-v11';
 const ASSETS = [
   './renova_manutencao_app.html',
   './manifest.json',
