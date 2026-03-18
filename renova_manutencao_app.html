@@ -1984,15 +1984,43 @@ function stepMateriais(){
   d.innerHTML+='<div class="sec">ITENS ADICIONADOS</div>';
   nr.mats.forEach((m,i)=>{
    const it=h('div','mi ok ms');
+   it.style.cssText='border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--gl)';
+   // Row 1: code + description + qty + remove
+   const row1=h('div');row1.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px';
    const mc=h('span','mc',m.c);
    const md=h('div','md',`${m.d}<br><span style="font-size:10px;color:var(--mu)">${m.u}</span>`);
+   md.style.flex='1';
    const qw=document.createElement('div'); qw.style.display='flex'; qw.style.alignItems='center'; qw.style.gap='4px';
    const qi=document.createElement('input'); qi.type='number'; qi.value=m.q; qi.min='0.1'; qi.step='0.1'; qi.className='mq';
    qi.onchange=e=>{S.nr.mats[i].q=parseFloat(e.target.value)||1;};
    const rb=h('button','','×'); rb.style.cssText='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px;padding:0;line-height:1';
    rb.onclick=()=>{S.nr.mats.splice(i,1);R();};
    qw.append(qi,h('span','',m.u),rb);
-   it.append(mc,md,qw); d.appendChild(it);
+   row1.append(mc,md,qw);
+   it.appendChild(row1);
+   // Row 2: local + piso
+   const locRow=h('div');locRow.style.cssText='display:flex;align-items:center;gap:6px';
+   const locIcon=h('span');locIcon.textContent='📍';locIcon.style.fontSize='12px';
+   const locInp=document.createElement('input');
+   locInp.type='text';
+   locInp.placeholder='Local / Sala / Ambiente (ex: Banheiro feminino, Corredor Sala 303...)';
+   locInp.value=m.local||'';
+   locInp.style.cssText='flex:1;border:1px solid var(--bd);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;outline:none;background:var(--sf)';
+   locInp.oninput=e=>{S.nr.mats[i].local=e.target.value;};
+   // Piso select
+   const pisoSel=document.createElement('select');
+   pisoSel.style.cssText='width:110px;border:1px solid var(--bd);border-radius:6px;padding:5px 6px;font-size:12px;font-family:inherit;outline:none;background:var(--sf)';
+   ['Piso','Térreo','1º Andar','2º Andar','3º Andar','4º Andar','Subsolo','Externo','Cobertura'].forEach(p=>{
+    const opt=document.createElement('option');
+    opt.value=p==='Piso'?'':p;
+    opt.textContent=p;
+    if((m.piso||'')===(p==='Piso'?'':p)) opt.selected=true;
+    pisoSel.appendChild(opt);
+   });
+   pisoSel.onchange=e=>{S.nr.mats[i].piso=e.target.value;};
+   locRow.append(locIcon,locInp,pisoSel);
+   it.appendChild(locRow);
+   d.appendChild(it);
   });
   const dlb=h('div','dlb','<span>ADICIONAR MAIS</span>'); d.appendChild(dlb);
  } else {
