@@ -385,43 +385,51 @@ let S = {
 // ── CÂMERA REAL ──────────────────────────────────────────
 
 // ── FOTO BUTTON HELPER ───────────────────────────────
-// Creates a reliable camera/gallery button using label+input (works on all mobile)
+var _fotoIdCounter = 0;
 function makeFotoBtn(label, arrGetter, onDone, useGallery){
- const wrapper = document.createElement('div');
- wrapper.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);position:relative;box-sizing:border-box';
- 
+ _fotoIdCounter++;
+ const uid = 'foto_inp_' + _fotoIdCounter;
+
+ // Create hidden input
  const inp = document.createElement('input');
  inp.type = 'file';
+ inp.id = uid;
  inp.accept = 'image/*';
- if(!useGallery) inp.capture = 'environment';
- else inp.multiple = true;
- inp.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:10;font-size:0';
- inp.onchange = (e)=>{
-  const files = Array.from(e.target.files);
+ inp.style.cssText = 'display:none';
+ if(!useGallery) inp.setAttribute('capture','environment');
+ if(useGallery) inp.multiple = true;
+ inp.addEventListener('change', function(){
+  const files = Array.from(inp.files||[]);
   if(!files.length) return;
   let pending = files.length;
-  files.forEach(file=>{
+  files.forEach(function(file){
    const reader = new FileReader();
-   reader.onload = (ev)=>{
+   reader.onload = function(ev){
     arrGetter().push({url:ev.target.result, nome:file.name, ts:Date.now()});
     pending--;
     if(pending===0){ saveDraft(); onDone(); }
    };
    reader.readAsDataURL(file);
   });
- };
- 
- const icon = document.createElement('div');
- icon.style.cssText='pointer-events:none;text-align:center';
+ });
+
+ // Create label that activates input — 100% reliable on mobile
+ const lbl = document.createElement('label');
+ lbl.htmlFor = uid;
+ lbl.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed '+(useGallery?'var(--bl)':'var(--bd)')+';border-radius:10px;cursor:pointer;background:var(--sf);box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,0.1)';
+
  if(useGallery){
-  icon.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><div style="font-size:9px;color:var(--bl);margin-top:2px;font-weight:700">Galeria</div>';
-  wrapper.style.borderColor='var(--bl)';
+  lbl.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span style="font-size:9px;color:var(--bl);font-weight:700;margin-top:4px">Galeria</span>';
  } else {
-  icon.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><div style="font-size:9px;color:var(--mu);margin-top:2px">+ Foto</div>';
+  lbl.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span style="font-size:9px;color:var(--mu);margin-top:4px">+ Foto</span>';
  }
- wrapper.appendChild(inp);
- wrapper.appendChild(icon);
- return wrapper;
+
+ // Wrap label + input together
+ const wrap = document.createElement('div');
+ wrap.style.cssText = 'display:contents'; // transparent wrapper
+ wrap.appendChild(inp);
+ wrap.appendChild(lbl);
+ return wrap;
 }
 function abrirCamera(callback){
  const inp = document.createElement('input');
