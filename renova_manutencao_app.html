@@ -400,16 +400,32 @@ function makeFotoBtn(label, arrGetter, onDone, useGallery){
  }
  return btn;
 }
+function salvarNaGaleria(dataUrl, nome){
+ try{
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'renova_'+(nome||new Date().toISOString().slice(0,19).replace(/[:.]/g,'-'))+'.jpg';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{try{document.body.removeChild(a);}catch(e){}},1000);
+ }catch(e){}
+}
+
 function abrirCamera(callback){
  const inp = document.createElement('input');
  inp.type = 'file';
  inp.accept = 'image/*';
+ inp.setAttribute('capture','environment');
  inp.style.cssText='position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0;z-index:9999';
  inp.onchange = (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = (ev)=>{ callback(ev.target.result, file.name); };
+  reader.onload = (ev)=>{
+   salvarNaGaleria(ev.target.result, file.name);
+   callback(ev.target.result, file.name);
+  };
   reader.readAsDataURL(file);
   try{document.body.removeChild(inp);}catch(e){}
  };
@@ -476,8 +492,8 @@ function chevR(){return '<svg width="14" height="14" viewBox="0 0 24 24" fill="n
 // ═══════════════════════════════════════════════════
 // SUPABASE SYNC ENGINE
 // ═══════════════════════════════════════════════════
-const SUPA_URL = 'https://SEU_PROJETO.supabase.co';
-const SUPA_KEY = 'SUA_ANON_KEY';
+const SUPA_URL = 'https://slojqcgmdaenphbwxcwr.supabase.co';
+const SUPA_KEY = 'sb_publishable_qcy-uJPeeGtR1rDh_RO8lQ_VIKHZENv';
 let supaChannel = null;
 
 function gerarSessao(comarca, edificacao, data){
@@ -631,7 +647,16 @@ async function syncDraftToSupabase(key, draft){
   await fetch(`${SUPA_URL}/rest/v1/drafts`,{
    method:'POST',
    headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
-   body:JSON.stringify({draft_key:key, data:JSON.stringify(draft), updated_at:new Date().toISOString()})
+   body:JSON.stringify({
+    draft_key:key,
+    sid: draft.nr?._sid||key,
+    tecnico: draft.tec||'',
+    tipo: draft.nr?.tp||'',
+    comarca: draft.nr?.co||'',
+    edificacao: draft.nr?.ed||'',
+    data: JSON.stringify(draft, (k,v)=>(k==='url'&&typeof v==='string'&&v.startsWith('data:image'))?'[foto]':v),
+    updated_at:new Date().toISOString()
+   })
   });
  }catch(e){}
 }
@@ -1942,7 +1967,10 @@ function stepFotos(){
    sumDiv.innerHTML='<span style="font-size:22px">📷</span><div><div style="font-size:14px;font-weight:700;color:var(--gn)">'+total+' foto'+(total!==1?'s':'')+'registrada'+(total!==1?'s':'')+' nas fachadas</div><div style="font-size:12px;color:var(--mu)">As fotos foram adicionadas na etapa anterior</div></div>';
    d.appendChild(sumDiv);
    // Anexos
-   d.innerHTML+='<div style="font-size:13px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Documentos Extras</div>';
+   const _extraTitle=document.createElement('div');
+   _extraTitle.style.cssText='font-size:13px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px';
+   _extraTitle.textContent='Documentos Extras';
+   d.appendChild(_extraTitle);
    if(!S.nr.anexos) S.nr.anexos=[];
    d.appendChild(renderAnexos());
    return d;
@@ -1989,7 +2017,7 @@ function stepFotos(){
    addFotoBtn.style.cssText='padding:8px 16px;border:1.5px dashed var(--gn);border-radius:8px;background:none;font-size:12px;font-weight:700;cursor:pointer;color:var(--gn);font-family:inherit';
    addFotoBtn.textContent='+ Adicionar Foto';
    addFotoBtn.onclick=function(){
-    alert('clicou!'); const _inp=document.createElement('input');
+    const _inp=document.createElement('input');
     _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
     _inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0';
     _inp.onchange=function(){
@@ -2000,6 +2028,7 @@ function stepFotos(){
       rd.onload=function(ev){
        if(!S.nr.ft[k])S.nr.ft[k]=[];
        S.nr.ft[k].push({url:ev.target.result,nome:file.name,ts:Date.now()});
+       salvarNaGaleria(ev.target.result, file.name);
        pending--;if(pending===0){saveDraft();R();}
       };rd.readAsDataURL(file);
      });
@@ -2014,7 +2043,10 @@ function stepFotos(){
  }
 
  // ANEXOS section
- d.innerHTML+='<div style="font-size:13px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);margin:16px 0 8px;padding-top:12px;border-top:1px solid var(--bd)">Anexos ao Relatório</div>';
+ const _anexoTitle=document.createElement('div');
+ _anexoTitle.style.cssText='font-size:13px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);margin:16px 0 8px;padding-top:12px;border-top:1px solid var(--bd)';
+ _anexoTitle.textContent='Anexos ao Atendimento';
+ d.appendChild(_anexoTitle);
  if(!S.nr.anexos) S.nr.anexos=[];
  d.appendChild(renderAnexos());
   return d;
@@ -2897,7 +2929,46 @@ function stepConcluir(){
   doneCard.innerHTML=`<span style="font-size:22px">✅</span><div><div style="font-size:14px;font-weight:900;color:var(--gn)">Relatório completo!</div><div style="font-size:12px;color:var(--gn);margin-top:1px">Todas as pendências foram resolvidas. Pronto para envio.</div></div>`;
   d.appendChild(doneCard);
   const btn=h('button','btn bp','✓ Finalizar e Enviar'); btn.style.marginTop='16px';
-  btn.onclick=()=>{
+  btn.onclick=async()=>{
+   btn.disabled=true; btn.textContent='Enviando...';
+   // Upload fotos e salvar no Supabase
+   try{
+    const nrCopy = JSON.parse(JSON.stringify(nr));
+    // Upload each foto to storage
+    const uploadAll = async(obj, path='')=>{
+     for(const k of Object.keys(obj)){
+      const v=obj[k];
+      if(k==='url'&&typeof v==='string'&&v.startsWith('data:image')){
+       try{
+        const blob = await (await fetch(v)).blob();
+        const fPath = 'fotos/'+(nr._sid||num)+'/'+path+'_'+k+'_'+Date.now()+'.jpg';
+        const up = await fetch(SUPA_URL+'/storage/v1/object/vistorias/'+fPath,{
+         method:'POST', body:blob,
+         headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'image/jpeg','x-upsert':'true'}
+        });
+        if(up.ok) obj[k]=SUPA_URL+'/storage/v1/object/public/vistorias/'+fPath;
+       }catch(e){}
+      } else if(v&&typeof v==='object') await uploadAll(v, path+k);
+     }
+    };
+    await uploadAll(nrCopy);
+    // Save vistoria finalizada
+    await fetch(SUPA_URL+'/rest/v1/vistorias',{
+     method:'POST',
+     headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+     body:JSON.stringify({
+      sid: nr._sid||num,
+      tecnico: LS?.nome||'',
+      tipo: nr.tp, comarca: nr.co, edificacao: nr.ed,
+      dados: JSON.stringify(nrCopy),
+      status:'finalizado', atualizado: new Date().toISOString()
+     })
+    });
+    // Remove rascunho do Supabase
+    if(nr._sid) await fetch(SUPA_URL+'/rest/v1/drafts?draft_key=eq.'+encodeURIComponent(draftKey(nr)),{
+     method:'DELETE', headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+    });
+   }catch(e){ console.error('Supabase finalizar:',e); }
    HIST.unshift({id:num,tp:nr.tp,co:nr.co,ed:nr.ed,dt:nr.dt||nr.dtIni||new Date().toLocaleDateString('pt-BR'),st:S.offline?'rascunho':'enviado',numOS:nr.numOS||''});
    deleteDraft(draftKey(nr));
    stopAutoSave();
@@ -2938,8 +3009,22 @@ R();
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js')
-      .then(r=>console.log('SW registered'))
-      .catch(e=>console.log('SW error',e));
+      .then(r=>{
+        console.log('SW registered');
+        r.update(); // verifica atualização toda vez
+        r.addEventListener('updatefound', ()=>{
+          const nw = r.installing;
+          nw.addEventListener('statechange', ()=>{
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              window.location.reload(); // recarrega com nova versão
+            }
+          });
+        });
+      })
+      .catch(e=>console.log('SW error', e));
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      window.location.reload();
+    });
   });
 }
 </script>
