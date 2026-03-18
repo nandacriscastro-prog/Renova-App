@@ -1778,8 +1778,8 @@ function stepFachadas(){
    slot.appendChild(rm);
    grid1.appendChild(slot);
   });
-  grid1.appendChild(makeFotoBtn('+ Foto',  ()=>{ if(!S.nr.ftFac[k])S.nr.ftFac[k]=[]; return S.nr.ftFac[k]; }, R, false));
-  grid1.appendChild(makeFotoBtn('Galeria', ()=>{ if(!S.nr.ftFac[k])S.nr.ftFac[k]=[]; return S.nr.ftFac[k]; }, R, true));
+  grid1.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';_b.onclick=()=>{abrirGaleria((url,nome)=>{((S.nr.ftFac[k]||(S.nr.ftFac[k]==[])&&S.nr.ftFac[k])).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
+  grid1.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bl);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--bl);font-weight:700';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Galeria';_b.onclick=()=>{abrirGaleria((url,nome)=>{((S.nr.ftFac[k]||(S.nr.ftFac[k]=[]))).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
   card.appendChild(grid1);
 
   // ── Fotos após intervenção (só se NC) ──
@@ -1803,8 +1803,8 @@ function stepFachadas(){
     slot.appendChild(rm2);
     grid2.appendChild(slot);
    });
-   grid2.appendChild(makeFotoBtn('+ Foto',  ()=>{ if(!S.nr.ftFacNC[k])S.nr.ftFacNC[k]=[]; return S.nr.ftFacNC[k]; }, R, false));
-   grid2.appendChild(makeFotoBtn('Galeria', ()=>{ if(!S.nr.ftFacNC[k])S.nr.ftFacNC[k]=[]; return S.nr.ftFacNC[k]; }, R, true));
+   grid2.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';_b.onclick=()=>{abrirGaleria((url,nome)=>{((S.nr.ftFacNC[k]||(S.nr.ftFacNC[k]=[]))).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
+   grid2.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bl);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--bl);font-weight:700';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Galeria';_b.onclick=()=>{abrirGaleria((url,nome)=>{((S.nr.ftFacNC[k]||(S.nr.ftFacNC[k]=[]))).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
    card.appendChild(grid2);
   }
 
@@ -1895,8 +1895,12 @@ function stepFotos(){
     slot.appendChild(rm); pg.appendChild(slot);
    });
    // add buttons — câmera e galeria
-   pg.appendChild(makeFotoBtn('+ Foto', ()=>{if(!S.nr.ft[k])S.nr.ft[k]=[];return S.nr.ft[k];}, R, false));
-   pg.appendChild(makeFotoBtn('Galeria', ()=>{if(!S.nr.ft[k])S.nr.ft[k]=[];return S.nr.ft[k];}, R, true));
+   const _btnFoto=h('button');
+   _btnFoto.type='button';
+   _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
+   _btnFoto.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';
+   _btnFoto.onclick=()=>{abrirGaleria((url,nome)=>{if(!S.nr.ft[k])S.nr.ft[k]=[];S.nr.ft[k].push({url,nome,ts:Date.now()});saveDraft();R();});};
+   pg.appendChild(_btnFoto);
    const cnt=h('div');
    cnt.style.cssText='font-size:11px;color:var(--mu);margin-top:5px;display:flex;align-items:center;justify-content:space-between';
    cnt.innerHTML=`<span>${filled} foto${filled!==1?'s':''} adicionada${filled!==1?'s':''} ${ok?'<span style="color:var(--gn)">✓</span>':'<span style="color:var(--r)">(mín. '+min+')</span>'}</span>${filled>0?'<button onclick="S.nr.ft[\''+k+'\'].pop();R()" style="background:none;border:none;color:var(--mu);font-size:10px;cursor:pointer;font-family:inherit">Remover última</button>':''}`;
@@ -1952,8 +1956,12 @@ function stepFotos(){
     const rm=h('button','','✕');rm.style.cssText='position:absolute;top:2px;left:2px;background:rgba(0,0,0,.5);border:none;color:#fff;border-radius:3px;width:15px;height:15px;cursor:pointer;font-size:8px;line-height:1';
     rm.onclick=(e)=>{e.stopPropagation();S.nr.ft[k].splice(i,1);R();};t.appendChild(rm); pg.appendChild(slot);
    });
-   pg.appendChild(makeFotoBtn('+ Foto', ()=>{if(!S.nr.ft[k])S.nr.ft[k]=[];return S.nr.ft[k];}, R, false));
-   pg.appendChild(makeFotoBtn('Galeria', ()=>{if(!S.nr.ft[k])S.nr.ft[k]=[];return S.nr.ft[k];}, R, true));
+   const _btnFoto=h('button');
+   _btnFoto.type='button';
+   _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
+   _btnFoto.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';
+   _btnFoto.onclick=()=>{abrirGaleria((url,nome)=>{if(!S.nr.ft[k])S.nr.ft[k]=[];S.nr.ft[k].push({url,nome,ts:Date.now()});saveDraft();R();});};
+   pg.appendChild(_btnFoto);
    const cnt=h('div');
    cnt.style.cssText='font-size:11px;color:var(--mu);margin-top:5px;display:flex;align-items:center;justify-content:space-between';
    cnt.innerHTML=`<span>${filled} foto${filled!==1?'s':''} adicionada${filled!==1?'s':''} ${ok?'<span style="color:var(--gn)">✓</span>':'<span style="color:var(--r)">(mín. '+min+')</span>'}</span>${filled>0?'<button onclick="S.nr.ft[\''+k+'\'].pop();R()" style="background:none;border:none;color:var(--mu);font-size:10px;cursor:pointer;font-family:inherit">Remover última</button>':''}`;
@@ -2204,8 +2212,8 @@ O sistema é composto por malha de captação de cobre, tipo gaiola de Faraday. 
   rm.onclick=(e)=>{e.stopPropagation();sp.fotosGeral.splice(i,1);S.nr.spda=sp;R();};
   slot.appendChild(rm); fgGrid.appendChild(slot);
  });
- fgGrid.appendChild(makeFotoBtn('+ Foto', ()=>{S.nr.spda=sp;return sp.fotosGeral;}, R, false));
- fgGrid.appendChild(makeFotoBtn('Galeria', ()=>{S.nr.spda=sp;return sp.fotosGeral;}, R, true));
+ fgGrid.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';_b.onclick=()=>{abrirGaleria((url,nome)=>{(sp.fotosGeral).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
+ fgGrid.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bl);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--bl);font-weight:700';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Galeria';_b.onclick=()=>{abrirGaleria((url,nome)=>{(sp.fotosGeral).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
  fgSec.appendChild(fgGrid);
  const fgCnt=h('div');
  fgCnt.style.cssText='font-size:11px;color:var(--mu);margin-top:5px';
@@ -2311,7 +2319,7 @@ function stepSpdaMedicoes(){
    rm.onclick=(e)=>{e.stopPropagation();sp.fotosPontos[p].splice(i,1);S.nr.spda=sp;R();};
    slot.appendChild(rm); fpGrid.appendChild(slot);
   });
-  fpGrid.appendChild(makeFotoBtn('+ Foto', ()=>{S.nr.spda=sp;if(!sp.fotosPontos[p])sp.fotosPontos[p]=[];return sp.fotosPontos[p];}, R, false));
+  fpGrid.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';_b.onclick=()=>{abrirGaleria((url,nome)=>{((sp.fotosPontos[p]||(sp.fotosPontos[p]=[]))).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
   cb2.appendChild(fpGrid);
   card.appendChild(cb2);
   d.appendChild(card);
@@ -2640,9 +2648,9 @@ function stepChecklist(){
         slot.appendChild(rm); pg.appendChild(slot);
        });
        // Camera button
-       pg.appendChild(makeFotoBtn('Câmera', ()=>arr, R, false));
+       pg.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';_b.onclick=()=>{abrirGaleria((url,nome)=>{(arr).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
        // Gallery button
-       pg.appendChild(makeFotoBtn('Galeria', ()=>arr, R, true));
+       pg.appendChild((()=>{const _b=h('button');_b.type='button';_b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bl);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--bl);font-weight:700';_b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Galeria';_b.onclick=()=>{abrirGaleria((url,nome)=>{(arr).push({url,nome,ts:Date.now()});saveDraft();R();});};return _b;})());
        fsec.appendChild(pg);
        return fsec;
       };
