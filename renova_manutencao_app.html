@@ -1899,7 +1899,28 @@ function stepFotos(){
    _btnFoto.type='button';
    _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
    _btnFoto.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';
-   _btnFoto.onclick=()=>{abrirGaleria((url,nome)=>{if(!S.nr.ft[k])S.nr.ft[k]=[];S.nr.ft[k].push({url,nome,ts:Date.now()});saveDraft();R();});};
+   _btnFoto.onclick=function(){
+    const _inp=document.createElement('input');
+    _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
+    _inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0';
+    _inp.onchange=function(){
+     const files=Array.from(_inp.files||[]);
+     let pending=files.length;
+     if(!pending)return;
+     files.forEach(function(f){
+      const r=new FileReader();
+      r.onload=function(e){
+       if(!S.nr.ft[k])S.nr.ft[k]=[];
+       S.nr.ft[k].push({url:e.target.result,nome:f.name,ts:Date.now()});
+       pending--;if(pending===0){saveDraft();R();}
+      };
+      r.readAsDataURL(f);
+     });
+     document.body.removeChild(_inp);
+    };
+    document.body.appendChild(_inp);
+    _inp.click();
+   };
    pg.appendChild(_btnFoto);
    const cnt=h('div');
    cnt.style.cssText='font-size:11px;color:var(--mu);margin-top:5px;display:flex;align-items:center;justify-content:space-between';
@@ -1960,7 +1981,28 @@ function stepFotos(){
    _btnFoto.type='button';
    _btnFoto.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;border:1.5px dashed var(--bd);border-radius:10px;cursor:pointer;background:var(--sf);padding:8px;font-family:inherit;font-size:9px;color:var(--mu)';
    _btnFoto.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>+ Foto';
-   _btnFoto.onclick=()=>{abrirGaleria((url,nome)=>{if(!S.nr.ft[k])S.nr.ft[k]=[];S.nr.ft[k].push({url,nome,ts:Date.now()});saveDraft();R();});};
+   _btnFoto.onclick=function(){
+    const _inp=document.createElement('input');
+    _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
+    _inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0';
+    _inp.onchange=function(){
+     const files=Array.from(_inp.files||[]);
+     let pending=files.length;
+     if(!pending)return;
+     files.forEach(function(f){
+      const r=new FileReader();
+      r.onload=function(e){
+       if(!S.nr.ft[k])S.nr.ft[k]=[];
+       S.nr.ft[k].push({url:e.target.result,nome:f.name,ts:Date.now()});
+       pending--;if(pending===0){saveDraft();R();}
+      };
+      r.readAsDataURL(f);
+     });
+     document.body.removeChild(_inp);
+    };
+    document.body.appendChild(_inp);
+    _inp.click();
+   };
    pg.appendChild(_btnFoto);
    const cnt=h('div');
    cnt.style.cssText='font-size:11px;color:var(--mu);margin-top:5px;display:flex;align-items:center;justify-content:space-between';
@@ -2475,7 +2517,24 @@ function stepChecklist(){
   galBtn2.type='button';
   galBtn2.style.cssText='padding:6px 12px;border:1.5px dashed var(--gn);border-radius:8px;background:none;font-size:11px;font-weight:700;cursor:pointer;color:var(--gn);font-family:inherit';
   galBtn2.textContent='+ Foto';
-  galBtn2.onclick=()=>{abrirGaleria((url,nome)=>{S.nr.ft[k].push({url,nome,ts:Date.now()});saveDraft();R();});};
+  galBtn2.onclick=function(){
+    const _inp=document.createElement('input');
+    _inp.type='file';_inp.accept='image/*';_inp.multiple=true;
+    _inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0';
+    _inp.onchange=function(){
+     const files=Array.from(_inp.files||[]);
+     let pending=files.length;if(!pending)return;
+     files.forEach(function(f){
+      const rd=new FileReader();
+      rd.onload=function(e){
+       S.nr.ft[k].push({url:e.target.result,nome:f.name,ts:Date.now()});
+       pending--;if(pending===0){saveDraft();R();}
+      };rd.readAsDataURL(f);
+     });
+     try{document.body.removeChild(_inp);}catch(e){}
+    };
+    document.body.appendChild(_inp);_inp.click();
+   };
   row.append(lbl,count,galBtn2);
   capaDiv.appendChild(row);
   // Show thumbnails
