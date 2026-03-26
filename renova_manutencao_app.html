@@ -615,6 +615,10 @@ function saveDraft(){
   key
  };
  localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+ // Persiste também o estado de navegação (tab + step) para restaurar ao reabrir
+ try{
+  localStorage.setItem('renova_nav', JSON.stringify({tab:S.tab, draftKey:key, step:S.nr.step}));
+ }catch(e){}
  // sync to supabase if online
  syncDraftToSupabase(key, drafts[key]);
 }
@@ -647,12 +651,12 @@ function resumeDraft(draft){
  console.log('resumeDraft called:', draft);
  if(!draft||!draft.nr){console.error('Invalid draft');return;}
  S.nr = JSON.parse(JSON.stringify(draft.nr));
- // keep current logged-in tech, don't override with draft tech
- // S.tec = draft.tec||S.tec;
  S.tab = 'new';
- // restore to step 0 always — safer
- S.nr.step = 0;
+ // Restaura o step salvo; se não tiver, vai para 0
+ if(typeof S.nr.step !== 'number' || S.nr.step < 0) S.nr.step = 0;
  startAutoSave();
+ // Salvar estado de navegação
+ try{ localStorage.setItem('renova_nav', JSON.stringify({tab:S.tab, nr:S.nr})); }catch(e){}
  R();
 }
 
@@ -1053,6 +1057,22 @@ function R(){
      const t=TECS.find(t=>t.id===sess.tecId);
      if(t){S.auth={logado:true,role:'executor',usuario:t.n};S.tec=t;}
     }
+    // Restaura estado de navegação (onde o usuário estava ao sair)
+    if(S.auth.logado){
+     try{
+      const nav=JSON.parse(localStorage.getItem('renova_nav')||'null');
+      if(nav&&nav.tab==='new'&&nav.draftKey){
+       const drafts=getDrafts();
+       const d=drafts[nav.draftKey];
+       if(d&&d.nr&&d.nr.tp){
+        S.nr=JSON.parse(JSON.stringify(d.nr));
+        S.nr.step=typeof nav.step==='number'?nav.step:0;
+        S.tab='new';
+        startAutoSave();
+       }
+      }
+     }catch(e){}
+    }
    }
   }catch(e){}
  }
@@ -1252,7 +1272,7 @@ function renderFlow(app){
  // header
  const hdr=h('div','hdr');
  const bk=h('button','hbk',chevL()+'Voltar');
- bk.onclick=()=>{saveDraft();if(nr.step===0){S.nr.tp=null;}else{S.nr.step--;}R();};
+ bk.onclick=()=>{saveDraft();if(nr.step===0){S.nr.tp=null;try{localStorage.removeItem('renova_nav');}catch(e){}}else{S.nr.step--;try{localStorage.setItem('renova_nav',JSON.stringify({tab:'new',draftKey:draftKey(S.nr),step:S.nr.step}));}catch(e){}}R();};
  const tt=h('div','htt',m.l);
  hdr.append(bk,tt,h('span','badge '+m.bk,m.ic));
  app.appendChild(hdr);
@@ -1304,7 +1324,7 @@ function renderFlow(app){
  if(nr.step<m.steps.length-1){
   const nb=h('button','btn bp','Próximo →');
   nb.style.flex='1';
-  nb.onclick=()=>{saveDraft();S.nr.step++;R();};
+  nb.onclick=()=>{saveDraft();S.nr.step++;try{localStorage.setItem('renova_nav',JSON.stringify({tab:'new',draftKey:draftKey(S.nr),step:S.nr.step}));}catch(e){}R();};
   foot.appendChild(nb);
  }
  app.appendChild(foot);
@@ -1612,11 +1632,14 @@ function stepServicos(){
   pasteTA.placeholder='Cole aqui o conteúdo do email da OS recebida...\nEx: OS 022 - João Pinheiro - Fórum\nObjetivo: Realizar manutenção do sistema de bombeamento...';
   pasteTA.style.cssText='width:100%;border:1px solid var(--bd);border-radius:7px;padding:9px 12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-bottom:8px';
   pasteTA.oninput=e=>{S.nr.ospTexto=e.target.value;};
+  pasteTA.onchange=e=>{S.nr.ospTexto=e.target.value;};
+  pasteTA.onpaste=e=>{setTimeout(()=>{S.nr.ospTexto=pasteTA.value;},0);};
 
   const parseBtn=h('button','btn bp','⚡ Extrair dados automaticamente');
   parseBtn.style.cssText='padding:10px;font-size:13px;font-weight:700;width:100%;margin-bottom:4px';
   parseBtn.onclick=()=>{
-   const txt=S.nr.ospTexto||'';
+   // Lê direto do textarea para garantir valor atual, mesmo sem ter saído do campo
+   const txt=pasteTA.value||S.nr.ospTexto||'';
    if(!txt.trim()){alert('Cole o texto do email primeiro.');return;}
 
    // Extract OS number
@@ -1647,7 +1670,19 @@ function stepServicos(){
     ||txt.match(/servi[çc]o[:\s]+([^\n\r]+)/i);
    if(objMatch) S.nr.obj=objMatch[1].trim();
 
-   R();
+   // Atualiza os campos da tela diretamente, sem chamar R() que destroi o textarea
+   // Atualiza input de OS
+   const osInput = document.querySelector('input[data-field="numOS"]');
+   if(osInput) osInput.value = S.nr.numOS||'';
+   // Força R() apenas se comarca foi detectada (precisa refazer seletores)
+   const precisaR = !!(coMatch && S.nr.co);
+   if(precisaR){
+    R();
+   } else {
+    // só atualizar campos inline sem destruir o textarea
+    const objTA = document.querySelector('textarea[data-field="obj"]');
+    if(objTA && objMatch) objTA.value = S.nr.obj;
+   }
    alert('✓ Dados extraídos! Revise os campos abaixo e corrija se necessário.');
   };
 
@@ -1662,6 +1697,7 @@ function stepServicos(){
   const fros=h('div','fld','<label>Número da OS Programada</label>');
   const osInp=document.createElement('input');
   osInp.type='text'; osInp.value=nr.numOS||''; osInp.placeholder='Ex: 022';
+  osInp.setAttribute('data-field','numOS');
   osInp.style.cssText='width:100%;border:1px solid var(--bd);border-radius:7px;padding:9px 12px;font-size:16px;font-weight:900;font-family:inherit;outline:none;letter-spacing:1px';
   osInp.oninput=e=>{S.nr.numOS=e.target.value;};
   fros.appendChild(osInp);
@@ -2934,7 +2970,7 @@ function stepConcluir(){
   // save and exit
   const saveBtn=h('button','btn bo','💾 Salvar e sair');
   saveBtn.style.marginTop='10px';
-  saveBtn.onclick=()=>{saveDraft();S.tab='home';stopAutoSave();R();};
+  saveBtn.onclick=()=>{saveDraft();S.tab='home';stopAutoSave();try{localStorage.removeItem('renova_nav');}catch(e){}R();};
   d.appendChild(saveBtn);
 
  } else {
@@ -2987,6 +3023,7 @@ function stepConcluir(){
    HIST.unshift({id:num,tp:nr.tp,co:nr.co,ed:nr.ed,dt:nr.dt||nr.dtIni||new Date().toLocaleDateString('pt-BR'),st:S.offline?'rascunho':'enviado',numOS:nr.numOS||''});
    deleteDraft(draftKey(nr));
    stopAutoSave();
+   try{localStorage.removeItem('renova_nav');}catch(e){}
    S.nr={tp:null,step:0,co:'',ed:'',gr:'',ct:'017/2026',dtIni:'',dtFim:'',dtRev:'',rev:'00',mesRef:'',supv:'',rtCivil:'',rtCivilCrea:'',rtElet:'',rtEletCrea:'',eq:[],obj:'',numOS:'',ospTexto:'',atv:'',lim:'Não houve.',nor:'NBR 5674 - MANUTENÇÃO DE EDIFICAÇÕES - PROCEDIMENTOS.',cau:'',ccl:'',ck:{},ckTarefa:{},ft:{},ftNC:{},mats:[],msi:{},sb:{},fac:{fr:'',ld:'',le:'',fu:'',iv:'',ae:'',am:'',ap:'',as:'',rc:''},op:{},_eqExtra:[],spda:{descEdif:'',instrumento:'Micro-ohmímetro Digital 10A – INSTRUM',dtRevisao:'',dtCalib:'',certFile:null,certFileName:'',checklist:{},pontos:{p1:'',p2:'',p3:'',bep:''},fotosPontos:{p1:[],p2:[],p3:[],bep:[]},fotosGeral:[],ncObs:'',parecer:''}};encerrarSync();
    S.tab='success'; R();
   };
@@ -2995,7 +3032,7 @@ function stepConcluir(){
   // also offer save draft
   const saveBtn2=h('button','btn bo','💾 Salvar e continuar depois');
   saveBtn2.style.marginTop='8px';
-  saveBtn2.onclick=()=>{saveDraft();S.tab='home';stopAutoSave();R();};
+  saveBtn2.onclick=()=>{saveDraft();S.tab='home';stopAutoSave();try{localStorage.removeItem('renova_nav');}catch(e){}R();};
   d.appendChild(saveBtn2);
  }
   return d;
@@ -3018,6 +3055,22 @@ function renderSuccess(app){
 }
 
 R();
+
+// Salva estado quando usuário sai ou minimiza o app
+document.addEventListener('visibilitychange', ()=>{
+ if(document.visibilityState==='hidden'){
+  if(S.tab==='new'&&S.nr.tp&&S.nr.co&&S.nr.ed){
+   saveDraft();
+   try{localStorage.setItem('renova_nav',JSON.stringify({tab:'new',draftKey:draftKey(S.nr),step:S.nr.step||0}));}catch(e){}
+  }
+ }
+});
+window.addEventListener('pagehide', ()=>{
+ if(S.tab==='new'&&S.nr.tp&&S.nr.co&&S.nr.ed){
+  saveDraft();
+  try{localStorage.setItem('renova_nav',JSON.stringify({tab:'new',draftKey:draftKey(S.nr),step:S.nr.step||0}));}catch(e){}
+ }
+});
 </script>
 
 <script>
