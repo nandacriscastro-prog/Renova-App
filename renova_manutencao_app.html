@@ -351,12 +351,18 @@ const AUTH_CONFIG = {
 
 // ── RESPONSÁVEIS TÉCNICOS PRÉ-CADASTRADOS (só admin altera) ──
 const RT_CONFIG = {
- civil:   {nome:"Fernando Gouveia de Morais Carvalho", crea:"0605063047521"},
- eletrica:{nome:"Paulo Tanaka",                        crea:"13861-MG"},
+ civil:   {nome:"Fernando Gouveia de Morais Carvalho", crea:"0605063047521", sig:""},
+ eletrica:{nome:"Paulo Tanaka",                        crea:"13861-MG",      sig:""},
  contrato:"017/2026",
  regiao:  "NORTE",
  empresa: "RENOVA ENGENHARIA LTDA",
 };
+// Carregar assinaturas salvas do localStorage
+try{
+ const saved=JSON.parse(localStorage.getItem('renova_rt_sigs')||'{}');
+ if(saved.civil)  RT_CONFIG.civil.sig=saved.civil;
+ if(saved.eletrica) RT_CONFIG.eletrica.sig=saved.eletrica;
+}catch(e){}
 const HIST = [
  {id:"OSE-004",tp:"ose",co:"Arinos",ed:"CEJUSC",dt:"06/03/2026",st:"enviado"},
  {id:"PER-012",tp:"periodica",co:"Buenópolis",ed:"Fórum",dt:"20/02/2026",st:"enviado"},
@@ -380,7 +386,8 @@ let S = {
   supv:"",rtCivil:"",rtCivilCrea:"",rtElet:"",rtEletCrea:"",
   eq:[],obj:"",numOS:"",ospTexto:"",atv:"",lim:"Não houve.",nor:"NBR 5674 - MANUTENÇÃO DE EDIFICAÇÕES - PROCEDIMENTOS.",
   cau:"",ccl:"",ck:{},ckTarefa:{},ft:{},ftNC:{},anexos:[],mats:[],msi:{},sb:{},
-  fac:{fr:"",ld:"",le:"",fu:"",iv:"",ae:"",am:"",ap:"",as:"",rc:""},op:{}},spda:{descEdif:"",instrumento:"Micro-ohmímetro Digital 10A – INSTRUM",dtRevisao:"",dtCalib:"",certFile:null,certFileName:"",checklist:{},pontos:{p1:"",p2:"",p3:"",bep:""},fotosPontos:{p1:[],p2:[],p3:[],bep:[]},fotosGeral:[],ncObs:"",parecer:""},
+  fac:{fr:"",ld:"",le:"",fu:"",iv:"",ae:"",am:"",ap:"",as:"",rc:""},op:{},
+  _ospPdfName:"",_ospPdfData:"",_rtSigId:"",_rtSigData:""},spda:{descEdif:"",instrumento:"Micro-ohmímetro Digital 10A – INSTRUM",dtRevisao:"",dtCalib:"",certFile:null,certFileName:"",checklist:{},pontos:{p1:"",p2:"",p3:"",bep:""},fotosPontos:{p1:[],p2:[],p3:[],bep:[]},fotosGeral:[],ncObs:"",parecer:""},
  msq:"", hf:"todos",
  // sync
  sync:{sessao:"",ativo:false,tecOnline:{},lockItem:{}},
@@ -890,6 +897,7 @@ function renderAdmin(){
 
  const sections=[
   {icon:'👷',title:'Responsáveis Técnicos',desc:'Editar Fernando/Paulo, CREAs e dados',action:'rt'},
+  {icon:'✍️',title:'Assinaturas dos RTs',desc:'Cadastrar assinatura do Fernando e do Paulo',action:'assinaturas'},
   {icon:'👥',title:'Equipes e Polos',desc:'Gerenciar membros por polo',action:'equipes'},
   {icon:'🏛',title:'Edificações e Grupos',desc:'Alterar grupo A/B/C das edificações',action:'grupos'},
   {icon:'📋',title:'Dados do Contrato',desc:'Contrato, empresa, região',action:'contrato'},
@@ -939,6 +947,94 @@ function renderAdminSection(action){
   pad.appendChild(h('div','',`<div style="font-size:12px;font-weight:700;color:var(--mu);margin-bottom:6px;text-transform:uppercase">RT Engenharia Elétrica</div>`));
   pad.appendChild(inp('Nome',RT_CONFIG.eletrica.nome,'text',v=>{RT_CONFIG.eletrica.nome=v;EMPRESA.rt_elet=v;}));
   pad.appendChild(inp('CREA Elétrica',RT_CONFIG.eletrica.crea,'text',v=>{RT_CONFIG.eletrica.crea=v;EMPRESA.rt_elet_crea=v;}));
+
+ } else if(action==='assinaturas'){
+  pad.innerHTML='<div style="font-size:17px;font-weight:900;margin-bottom:4px">✍️ Assinaturas dos RTs</div><div style="font-size:12px;color:var(--mu);margin-bottom:16px">Cadastre as assinaturas uma vez — ficam salvas para uso em todos os relatórios</div>';
+
+  function makeSigAdmin(label, rtKey){
+   const sec=h('div');
+   sec.innerHTML=`<div style="font-size:13px;font-weight:900;color:var(--dk);margin-bottom:2px">${label}</div><div style="font-size:11px;color:var(--mu);margin-bottom:8px">${RT_CONFIG[rtKey].nome} — CREA: ${RT_CONFIG[rtKey].crea}</div>`;
+
+   // Preview se já tem assinatura
+   const prevDiv=h('div');
+   function renderPrev(){
+    prevDiv.innerHTML='';
+    if(RT_CONFIG[rtKey].sig){
+     const img=document.createElement('img');
+     img.src=RT_CONFIG[rtKey].sig;
+     img.style.cssText='width:100%;height:80px;object-fit:contain;border:1px solid var(--gn);border-radius:8px;background:#fff;display:block;margin-bottom:8px';
+     prevDiv.appendChild(img);
+    }
+   }
+   renderPrev();
+   sec.appendChild(prevDiv);
+
+   // Canvas
+   const canvas=document.createElement('canvas');
+   canvas.width=700;canvas.height=160;
+   canvas.style.cssText='width:100%;height:100px;border:1.5px solid var(--bd);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair;display:block;margin-bottom:8px';
+   const ctx=canvas.getContext('2d');
+   ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+   let drw=false,lx=0,ly=0;
+   function gp(e){const r=canvas.getBoundingClientRect();const sx=canvas.width/r.width,sy=canvas.height/r.height;const s=e.touches?e.touches[0]:e;return{x:(s.clientX-r.left)*sx,y:(s.clientY-r.top)*sy};}
+   canvas.addEventListener('mousedown',(e)=>{e.preventDefault();drw=true;const p=gp(e);lx=p.x;ly=p.y;},{passive:false});
+   canvas.addEventListener('touchstart',(e)=>{e.preventDefault();drw=true;const p=gp(e);lx=p.x;ly=p.y;},{passive:false});
+   canvas.addEventListener('mousemove',(e)=>{if(!drw)return;const p=gp(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;});
+   canvas.addEventListener('touchmove',(e)=>{e.preventDefault();if(!drw)return;const p=gp(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
+   canvas.addEventListener('mouseup',()=>{drw=false;});
+   canvas.addEventListener('touchend',()=>{drw=false;});
+   sec.appendChild(canvas);
+
+   // Botões
+   const btns=h('div');btns.style.cssText='display:flex;gap:8px;margin-bottom:20px';
+
+   // Upload foto da assinatura
+   const fLbl=document.createElement('label');
+   fLbl.style.cssText='flex:1;padding:9px;font-size:12px;font-weight:700;border:1.5px solid var(--bl);border-radius:8px;cursor:pointer;color:var(--bl);background:var(--bll);text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit';
+   fLbl.innerHTML='📷 Carregar foto/imagem';
+   const fInp=document.createElement('input');fInp.type='file';fInp.accept='image/*';fInp.style.display='none';
+   fInp.onchange=(e)=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=(ev)=>{
+     const img=new Image();
+     img.onload=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const scale=Math.min(canvas.width/img.width,canvas.height/img.height)*0.9;
+      ctx.drawImage(img,(canvas.width-img.width*scale)/2,(canvas.height-img.height*scale)/2,img.width*scale,img.height*scale);
+     };
+     img.src=ev.target.result;
+    };
+    r.readAsDataURL(f);
+   };
+   fLbl.appendChild(fInp);
+
+   const clrBtn=h('button');clrBtn.textContent='🗑 Limpar';
+   clrBtn.style.cssText='flex:1;padding:9px;font-size:12px;font-weight:700;border:1.5px solid var(--bd);border-radius:8px;cursor:pointer;font-family:inherit;background:var(--cd)';
+   clrBtn.onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);RT_CONFIG[rtKey].sig='';salvarSigs();renderPrev();};
+
+   const saveBtn=h('button');saveBtn.textContent='💾 Salvar assinatura';
+   saveBtn.style.cssText='flex:2;padding:9px;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit;background:var(--r);color:#fff';
+   saveBtn.onclick=()=>{
+    RT_CONFIG[rtKey].sig=canvas.toDataURL('image/png');
+    salvarSigs();
+    renderPrev();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    alert('✓ Assinatura de '+RT_CONFIG[rtKey].nome.split(' ')[0]+' salva com sucesso!');
+   };
+
+   btns.append(fLbl,clrBtn,saveBtn);
+   sec.appendChild(btns);
+   return sec;
+  }
+
+  function salvarSigs(){
+   try{localStorage.setItem('renova_rt_sigs',JSON.stringify({civil:RT_CONFIG.civil.sig,eletrica:RT_CONFIG.eletrica.sig}));}catch(e){}
+  }
+
+  pad.appendChild(makeSigAdmin('📌 RT Engenharia Civil','civil'));
+  pad.innerHTML+='<div style="height:1px;background:var(--bd);margin:0 0 20px"></div>';
+  pad.appendChild(makeSigAdmin('📌 RT Engenharia Elétrica','eletrica'));
 
  } else if(action==='contrato'){
   pad.innerHTML='<div style="font-size:17px;font-weight:900;margin-bottom:14px">Dados do Contrato</div>';
@@ -1622,73 +1718,274 @@ function stepServicos(){
   // ── OSP FLOW ──────────────────────────────────────
   d.innerHTML='<div style="font-size:17px;font-weight:900;margin-bottom:4px">Dados da OS Programada</div><div style="font-size:12px;color:var(--mu);margin-bottom:14px">Cole o texto do email da OS para preenchimento automático</div>';
 
-  // PASTE OS EMAIL
+  // ── UPLOAD PDF DA OSP + EXTRAÇÃO VIA CLAUDE API ───────────────────
   const pasteCard=h('div','card');
   const pasteBody=h('div','cb');
-  pasteBody.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--mu);margin-bottom:6px">📧 COLAR TEXTO DO EMAIL DA OS</div>';
-  const pasteTA=document.createElement('textarea');
-  pasteTA.value=nr.ospTexto||'';
-  pasteTA.rows=4;
-  pasteTA.placeholder='Cole aqui o conteúdo do email da OS recebida...\nEx: OS 022 - João Pinheiro - Fórum\nObjetivo: Realizar manutenção do sistema de bombeamento...';
-  pasteTA.style.cssText='width:100%;border:1px solid var(--bd);border-radius:7px;padding:9px 12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-bottom:8px';
-  pasteTA.oninput=e=>{S.nr.ospTexto=e.target.value;};
-  pasteTA.onchange=e=>{S.nr.ospTexto=e.target.value;};
-  pasteTA.onpaste=e=>{setTimeout(()=>{S.nr.ospTexto=pasteTA.value;},0);};
 
-  const parseBtn=h('button','btn bp','⚡ Extrair dados automaticamente');
-  parseBtn.style.cssText='padding:10px;font-size:13px;font-weight:700;width:100%;margin-bottom:4px';
-  parseBtn.onclick=()=>{
-   // Lê direto do textarea para garantir valor atual, mesmo sem ter saído do campo
-   const txt=pasteTA.value||S.nr.ospTexto||'';
-   if(!txt.trim()){alert('Cole o texto do email primeiro.');return;}
-
-   // Extract OS number
-   const numMatch=txt.match(/OS[\s\-#nN°º\.]*([\d]+)/i)||txt.match(/(\d{3,})/);
-   if(numMatch) S.nr.numOS=numMatch[1];
-
-   // Extract comarca
-   const coMatch=txt.match(/comarca[:\s]+([\w\s]+?)(?:\n|\r|edifica|fórum|forum|-|$)/i);
-   if(coMatch){
-    const coGuess=coMatch[1].trim().split(/\s+/).slice(0,3).join(' ');
-    const found=COMARCAS.find(c=>c.toLowerCase().includes(coGuess.toLowerCase())||coGuess.toLowerCase().includes(c.toLowerCase().substring(0,5)));
-    if(found){S.nr.co=found;S.nr.ed='';S.nr.gr='';}
+  // ── Preview do PDF anexado ──
+  const pdfPrev=h('div');
+  function renderPdfPrev(){
+   pdfPrev.innerHTML='';
+   if(S.nr._ospPdfName){
+    const row=h('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--gl);border:1px solid var(--gn);border-radius:8px;padding:10px 12px;margin-bottom:8px';
+    row.innerHTML=`<span style="font-size:22px">📄</span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--gn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${S.nr._ospPdfName}</div><div style="font-size:11px;color:var(--mu)">PDF anexado — dados extraídos ✓</div></div>`;
+    const rm=h('button');rm.textContent='Trocar PDF';
+    rm.style.cssText='padding:5px 10px;background:none;border:1px solid var(--gn);border-radius:6px;cursor:pointer;font-size:11px;color:var(--gn);font-family:inherit;flex-shrink:0';
+    rm.onclick=()=>{S.nr._ospPdfName='';S.nr._ospPdfB64='';pdfPrev.innerHTML='';uploadLbl.style.display='flex';saveDraft();};
+    row.appendChild(rm);pdfPrev.appendChild(row);
    }
+  }
+  pasteBody.innerHTML='<div style="font-size:13px;font-weight:900;color:var(--dk);margin-bottom:10px">📎 Ordem de Serviço Programada</div>';
+  pasteBody.appendChild(pdfPrev);
 
-   // Extract edificação
-   const edMatch=txt.match(/edifica[çc][aã]o[:\s]+([\w\s]+?)(?:\n|\r|objetivo|endere|-|$)/i)
-    ||txt.match(/(f[óo]rum|cejusc|jesp|arquivo|posto)/i);
-   if(edMatch){
-    const edGuess=edMatch[1]||edMatch[0];
-    const edifs=getEdifs(S.nr.co||'');
-    const found=edifs.find(e=>e.toLowerCase().includes(edGuess.toLowerCase().trim().substring(0,5)));
-    if(found){S.nr.ed=found;S.nr.gr=getGrupo(S.nr.co,found);}
+  // ── Botão upload ──
+  const uploadLbl=document.createElement('label');
+  uploadLbl.style.cssText='display:'+(S.nr._ospPdfName?'none':'flex')+';flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;padding:24px 12px;border:2px dashed var(--r);border-radius:12px;cursor:pointer;background:var(--rl);margin-bottom:8px;box-sizing:border-box';
+  uploadLbl.innerHTML='<span style="font-size:32px">📄</span><span style="font-size:15px;font-weight:700;color:var(--r2)">Anexar PDF da OSP</span><span style="font-size:11px;color:var(--mu)">Toque para selecionar o arquivo PDF</span>';
+  const pdfInp=document.createElement('input');
+  pdfInp.type='file';pdfInp.accept='application/pdf,.pdf';pdfInp.style.display='none';
+
+  // Status de loading
+  const statusDiv=h('div');
+  statusDiv.style.cssText='display:none;text-align:center;padding:14px;font-size:13px;color:var(--mu)';
+
+  pdfInp.onchange=async(e)=>{
+   const file=e.target.files[0];if(!file)return;
+   uploadLbl.style.display='none';
+   statusDiv.style.display='block';
+   statusDiv.innerHTML='<div style="font-size:24px;margin-bottom:6px">⏳</div><b>Lendo PDF e extraindo dados...</b><br><span style="font-size:11px">Aguarde alguns segundos</span>';
+
+   try{
+    // Converter para base64
+    const b64=await new Promise((res,rej)=>{
+     const r=new FileReader();
+     r.onload=ev=>res(ev.target.result.split(',')[1]);
+     r.onerror=rej;
+     r.readAsDataURL(file);
+    });
+    S.nr._ospPdfName=file.name;
+    S.nr._ospPdfB64=b64;
+
+    // ── Extração via Claude API com o PDF ──
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+     method:'POST',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      messages:[{role:'user',content:[
+       {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+       {type:'text',text:`Extraia os seguintes dados deste PDF de Ordem de Serviço do TJMG e retorne APENAS um JSON válido, sem explicações:
+{
+  "comarca": "nome exato da comarca",
+  "edificacao": "nome da edificação (ex: Fórum, Novo Fórum, CEJUSC, JESP, Arquivo)",
+  "numOS": "número da OS (ex: 002)",
+  "dataOS": "data no formato DD/MM/YYYY",
+  "prazoInicio": "data início do prazo no formato DD/MM/YYYY",
+  "prazoFim": "data fim do prazo no formato DD/MM/YYYY",
+  "contrato": "número do contrato (ex: 017/2026)",
+  "objetivo": "descrição resumida dos serviços a executar"
+}
+Retorne somente o JSON, sem markdown, sem explicação.`}
+      ]}]
+     })
+    });
+
+    const data=await resp.json();
+    const txt=data.content?.[0]?.text||'';
+
+    try{
+     // Limpar o JSON retornado
+     const clean=txt.replace(/```json|```/g,'').trim();
+     const extracted=JSON.parse(clean);
+
+     // Aplicar comarca
+     if(extracted.comarca){
+      const n2=(s)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const sorted=[...COMARCAS].sort((a,b)=>b.length-a.length);
+      const found=sorted.find(c=>n2(extracted.comarca).includes(n2(c))||n2(c).includes(n2(extracted.comarca).substring(0,5)));
+      if(found){S.nr.co=found;S.nr.ed='';S.nr.gr='';}
+     }
+     // Aplicar edificação
+     if(extracted.edificacao&&S.nr.co){
+      const n2=(s)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const edifs=getEdifs(S.nr.co);
+      const KW=[['novo forum','Novo Fórum'],['forum','Fórum'],['cejusc','CEJUSC'],['jesp','JESP'],['arquivo','Arquivo'],['posto','Posto']];
+      let ef=edifs.find(e=>n2(e)===n2(extracted.edificacao)||n2(extracted.edificacao).includes(n2(e)));
+      if(!ef){for(const [kw,lb] of KW){if(n2(extracted.edificacao).includes(kw)){ef=edifs.find(e=>n2(e).includes(kw)||n2(e)===n2(lb));if(ef)break;}}}
+      if(ef){S.nr.ed=ef;S.nr.gr=getGrupo(S.nr.co,ef);}
+     }
+     if(extracted.numOS) S.nr.numOS=extracted.numOS;
+     if(extracted.dataOS) S.nr.dtIni=extracted.dataOS;
+     if(extracted.prazoInicio) S.nr.dtIni=S.nr.dtIni||extracted.prazoInicio;
+     if(extracted.prazoFim) S.nr.dtFim=extracted.prazoFim;
+     if(extracted.contrato) S.nr.ct=extracted.contrato;
+     if(extracted.objetivo) S.nr.obj=extracted.objetivo;
+
+     // Auto-preencher equipe do polo
+     if(S.nr.co){const team=getTeamByComarca(S.nr.co);if(team)S.nr.eq=[...team.membros];}
+
+     statusDiv.style.display='none';
+     renderPdfPrev();
+     saveDraft();
+     R();
+     setTimeout(()=>{
+      const ok=[],er=[];
+      if(S.nr.numOS)ok.push('✓ OS nº: '+S.nr.numOS);else er.push('✗ Número da OS');
+      if(S.nr.co)ok.push('✓ Comarca: '+S.nr.co);else er.push('✗ Comarca');
+      if(S.nr.ed)ok.push('✓ Edificação: '+S.nr.ed);else er.push('✗ Edificação');
+      if(S.nr.dtIni)ok.push('✓ Data OS: '+S.nr.dtIni);
+      if(S.nr.dtFim)ok.push('✓ Prazo até: '+S.nr.dtFim);
+      alert((er.length?'⚠️ Extraído parcialmente':'✓ PDF lido com sucesso!')+':\n\n'+[...ok,...er].join('\n')+(er.length?'\n\nPreencha os campos com ✗ manualmente':''));
+     },200);
+
+    }catch(parseErr){
+     // Claude retornou algo mas não é JSON válido — tentar extrair manualmente
+     statusDiv.style.display='none';
+     S.nr.ospTexto=txt;
+     extractOSPData(txt);
+     renderPdfPrev();
+     saveDraft();
+     R();
+    }
+
+   }catch(err){
+    console.error('Erro PDF:',err);
+    statusDiv.innerHTML='<div style="color:var(--r)">❌ Erro ao ler o PDF.<br><span style="font-size:11px">Cole o texto manualmente abaixo.</span></div>';
+    setTimeout(()=>{statusDiv.style.display='none';uploadLbl.style.display='flex';},2500);
+    S.nr._ospPdfName='';S.nr._ospPdfB64='';
    }
-
-   // Extract objetivo
-   const objMatch=txt.match(/objetivo[:\s]+([^\n\r]+)/i)
-    ||txt.match(/objeto[:\s]+([^\n\r]+)/i)
-    ||txt.match(/servi[çc]o[:\s]+([^\n\r]+)/i);
-   if(objMatch) S.nr.obj=objMatch[1].trim();
-
-   // Atualiza os campos da tela diretamente, sem chamar R() que destroi o textarea
-   // Atualiza input de OS
-   const osInput = document.querySelector('input[data-field="numOS"]');
-   if(osInput) osInput.value = S.nr.numOS||'';
-   // Força R() apenas se comarca foi detectada (precisa refazer seletores)
-   const precisaR = !!(coMatch && S.nr.co);
-   if(precisaR){
-    R();
-   } else {
-    // só atualizar campos inline sem destruir o textarea
-    const objTA = document.querySelector('textarea[data-field="obj"]');
-    if(objTA && objMatch) objTA.value = S.nr.obj;
-   }
-   alert('✓ Dados extraídos! Revise os campos abaixo e corrija se necessário.');
   };
+  uploadLbl.appendChild(pdfInp);
+  pasteBody.appendChild(uploadLbl);
+  pasteBody.appendChild(statusDiv);
+  renderPdfPrev();
 
-  pasteBody.append(pasteTA,parseBtn);
+  // ── Separador / fallback manual ──
+  const orDiv=h('div');
+  orDiv.style.cssText='display:flex;align-items:center;gap:8px;margin:8px 0';
+  orDiv.innerHTML='<div style="flex:1;height:1px;background:var(--bd)"></div><span style="font-size:10px;color:var(--mu);white-space:nowrap">ou cole o texto da OS</span><div style="flex:1;height:1px;background:var(--bd)"></div>';
+  pasteBody.appendChild(orDiv);
+
+  const pasteTA=document.createElement('textarea');
+  pasteTA.value=nr.ospTexto||'';pasteTA.rows=3;
+  pasteTA.placeholder='Cole aqui o texto da OS como alternativa ao PDF...';
+  pasteTA.style.cssText='width:100%;border:1px solid var(--bd);border-radius:7px;padding:9px 12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-bottom:8px;box-sizing:border-box';
+  pasteTA.oninput=e=>{S.nr.ospTexto=e.target.value;};
+  pasteTA.onpaste=e=>{setTimeout(()=>{S.nr.ospTexto=pasteTA.value;},0);};
+  pasteBody.appendChild(pasteTA);
+
+  const parseBtn=h('button','btn bp','⚡ Extrair do texto');
+  parseBtn.style.cssText='padding:9px;font-size:13px;font-weight:700;width:100%;margin-bottom:2px';
+  parseBtn.onclick=()=>{
+   const txt=pasteTA.value||S.nr.ospTexto||'';
+   if(!txt.trim()){alert('Cole o texto da OS primeiro.');return;}
+   S.nr.ospTexto=txt;extractOSPData(txt);R();
+   setTimeout(()=>{
+    const ok=[],er=[];
+    if(S.nr.numOS)ok.push('✓ OS nº: '+S.nr.numOS);else er.push('✗ Número da OS');
+    if(S.nr.co)ok.push('✓ Comarca: '+S.nr.co);else er.push('✗ Comarca');
+    if(S.nr.ed)ok.push('✓ Edificação: '+S.nr.ed);else er.push('✗ Edificação');
+    if(S.nr.dtIni)ok.push('✓ Data: '+S.nr.dtIni);
+    alert((er.length?'⚠️ Parcial':'✓ Extraído!')+':\n\n'+[...ok,...er].join('\n'));
+   },150);
+  };
+  pasteBody.appendChild(parseBtn);
   pasteCard.appendChild(pasteBody);
   d.appendChild(pasteCard);
+
+  // ── ASSINATURA DO RT ─────────────────────────────────────────────────
+  const sigCard=h('div','card');sigCard.style.marginTop='10px';
+  const sigBody=h('div','cb');
+  sigBody.innerHTML='<div style="font-size:13px;font-weight:900;color:var(--dk);margin-bottom:4px">✍️ Assinatura do Responsável Técnico</div><div style="font-size:11px;color:var(--mu);margin-bottom:12px">Selecione o RT e assine no campo abaixo</div>';
+
+  // Seletor Fernando / Paulo
+  const rtOpts=[
+   {id:'civil',label:RT_CONFIG.civil.nome,   crea:RT_CONFIG.civil.crea,   tipo:'RT Civil',    sigKey:'civil'},
+   {id:'elet', label:RT_CONFIG.eletrica.nome, crea:RT_CONFIG.eletrica.crea, tipo:'RT Elétrico', sigKey:'eletrica'},
+  ];
+  const rtGrid=h('div');rtGrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px';
+
+  function renderRtSel(){
+   rtGrid.innerHTML='';
+   rtOpts.forEach(opt=>{
+    const sel=S.nr._rtSigId===opt.id;
+    const hasSig=!!RT_CONFIG[opt.sigKey].sig;
+    const btn=h('button');
+    btn.style.cssText=`border:2px solid ${sel?'var(--r)':'var(--bd)'};border-radius:10px;padding:10px 8px;background:${sel?'var(--rl)':'var(--cd)'};cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;position:relative`;
+    // Badge de assinatura cadastrada
+    const badge=hasSig?'<div style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--gn)"></div>':'';
+    btn.innerHTML=`${badge}<div style="font-size:10px;font-weight:700;color:var(--mu);margin-bottom:3px">${opt.tipo}</div><div style="font-size:13px;font-weight:900;color:${sel?'var(--r2)':'var(--tx)'}">${opt.label.split(' ')[0]}<br>${opt.label.split(' ')[1]||''}</div><div style="font-size:10px;color:var(--mu);margin-top:3px">${hasSig?'✓ Assinatura cadastrada':'⚠️ Sem assinatura'}</div>`;
+    btn.onclick=()=>{
+     S.nr._rtSigId=opt.id;
+     // Carregar assinatura salva automaticamente no canvas
+     if(RT_CONFIG[opt.sigKey].sig){
+      S.nr._rtSigData=RT_CONFIG[opt.sigKey].sig;
+      // Atualizar canvas
+      const img=new Image();
+      img.onload=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);};
+      img.src=RT_CONFIG[opt.sigKey].sig;
+     }
+     if(opt.id==='civil'){S.nr.rtCivil=opt.label;S.nr.rtCivilCrea=opt.crea;}
+     else{S.nr.rtElet=opt.label;S.nr.rtEletCrea=opt.crea;}
+     renderRtSel();saveDraft();
+    };
+    rtGrid.appendChild(btn);
+   });
+  }
+  renderRtSel();
+  sigBody.appendChild(rtGrid);
+
+  // Canvas assinatura
+  sigBody.innerHTML+='<div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:6px">ASSINAR ABAIXO:</div>';
+  const canvas=document.createElement('canvas');
+  canvas.width=700;canvas.height=160;
+  canvas.style.cssText='width:100%;height:100px;border:1.5px solid var(--bd);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair;display:block;margin-bottom:8px';
+  const ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+  // Restaurar assinatura salva
+  if(S.nr._rtSigData){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);img.src=S.nr._rtSigData;}
+  let draw=false,lx=0,ly=0;
+  function gp(e){const r=canvas.getBoundingClientRect();const sx=canvas.width/r.width,sy=canvas.height/r.height;const s=e.touches?e.touches[0]:e;return{x:(s.clientX-r.left)*sx,y:(s.clientY-r.top)*sy};}
+  canvas.addEventListener('mousedown',(e)=>{e.preventDefault();draw=true;const p=gp(e);lx=p.x;ly=p.y;},{passive:false});
+  canvas.addEventListener('touchstart',(e)=>{e.preventDefault();draw=true;const p=gp(e);lx=p.x;ly=p.y;},{passive:false});
+  canvas.addEventListener('mousemove',(e)=>{if(!draw)return;const p=gp(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;});
+  canvas.addEventListener('touchmove',(e)=>{e.preventDefault();if(!draw)return;const p=gp(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
+  canvas.addEventListener('mouseup',()=>{draw=false;S.nr._rtSigData=canvas.toDataURL();saveDraft();});
+  canvas.addEventListener('touchend',()=>{draw=false;S.nr._rtSigData=canvas.toDataURL();saveDraft();});
+  sigBody.appendChild(canvas);
+
+  // Botões limpar e foto
+  const sigBtns=h('div');sigBtns.style.cssText='display:flex;gap:8px';
+  const clrBtn=h('button');clrBtn.textContent='🗑 Limpar';
+  clrBtn.style.cssText='flex:1;padding:9px;font-size:12px;font-weight:700;border:1.5px solid var(--bd);border-radius:8px;cursor:pointer;font-family:inherit;background:var(--cd)';
+  clrBtn.onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);S.nr._rtSigData='';saveDraft();};
+
+  const fotoLbl=document.createElement('label');
+  fotoLbl.style.cssText='flex:1;padding:9px;font-size:12px;font-weight:700;border:1.5px solid var(--bl);border-radius:8px;cursor:pointer;font-family:inherit;color:var(--bl);background:var(--bll);text-align:center;display:flex;align-items:center;justify-content:center;gap:5px';
+  fotoLbl.innerHTML='📷 Foto da assinatura';
+  const fotoInp=document.createElement('input');fotoInp.type='file';fotoInp.accept='image/*';fotoInp.style.display='none';
+  fotoInp.onchange=(e)=>{
+   const f=e.target.files[0];if(!f)return;
+   const r=new FileReader();
+   r.onload=(ev)=>{
+    const img=new Image();
+    img.onload=()=>{
+     ctx.clearRect(0,0,canvas.width,canvas.height);
+     const scale=Math.min(canvas.width/img.width,canvas.height/img.height)*0.92;
+     ctx.drawImage(img,(canvas.width-img.width*scale)/2,(canvas.height-img.height*scale)/2,img.width*scale,img.height*scale);
+     S.nr._rtSigData=canvas.toDataURL();saveDraft();
+    };
+    img.src=ev.target.result;
+   };
+   r.readAsDataURL(f);
+  };
+  fotoLbl.appendChild(fotoInp);
+  sigBtns.append(clrBtn,fotoLbl);
+  sigBody.appendChild(sigBtns);
+  sigCard.appendChild(sigBody);
+  d.appendChild(sigCard);
 
   // FIELDS — auto-filled, editable
   d.innerHTML+='<div style="font-size:13px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);margin:14px 0 10px;padding-top:12px;border-top:1px solid var(--bd)">Dados Extraídos / Confirmação</div>';
@@ -3020,11 +3317,108 @@ function stepConcluir(){
      method:'DELETE', headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
     });
    }catch(e){ console.error('Supabase finalizar:',e); }
+
+   // ── ENVIO DE EMAIL AUTOMÁTICO (oculto) ──────────────────────────────
+   try{
+    const DEST_EMAIL='relatoriosrenovatjmg@gmail.com';
+    const tipoLabel={ose:'Vistoria Emergencial',periodica:'Manutenção Periódica',programada:'OS Programada',fachada:'Laudo de Fachada',spda:'Laudo SPDA'};
+    const dtHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const tecNome=S.tec?.n||'Técnico';
+    const matsList=(nr.mats||[]).map(m=>`• ${m.d||m.desc||''} — ${m.qt||m.qtd||''} ${m.u||''}`).join('\n')||'Nenhum material registrado.';
+    const ckTotal=Object.keys(nr.ck||{}).length;
+    const ckFeitos=Object.values(nr.ck||{}).filter(v=>v).length;
+
+    // Monta corpo do email
+    const corpo=`RELATÓRIO TÉCNICO — ${(tipoLabel[nr.tp]||nr.tp||'').toUpperCase()}
+════════════════════════════════════════
+Gerado em: ${dtHoje}
+Técnico responsável: ${tecNome}
+
+IDENTIFICAÇÃO
+─────────────────────────────────────────
+Contrato: ${nr.ct||'017/2026'}
+Comarca: ${nr.co||'—'}
+Edificação: ${nr.ed||'—'} (Grupo ${nr.gr||'—'})
+Mês de referência: ${nr.mesRef||'—'}
+Data início: ${nr.dtIni||'—'}
+Data fim: ${nr.dtFim||'—'}
+${nr.numOS?'OS Programada nº: '+nr.numOS:''}
+Supervisor: ${nr.supv||'—'}
+RT Civil: ${nr.rtCivil||'—'} — CREA: ${nr.rtCivilCrea||'—'}
+RT Elétrico: ${nr.rtElet||'—'} — CREA: ${nr.rtEletCrea||'—'}
+
+OBJETO / OBJETIVO
+─────────────────────────────────────────
+${nr.obj||'—'}
+
+ATIVIDADES / OBSERVAÇÕES
+─────────────────────────────────────────
+${nr.atv||nr.ospTexto||'—'}
+
+${ckTotal>0?`CHECKLIST: ${ckFeitos}/${ckTotal} itens executados\n`:''}
+LIMITAÇÕES TÉCNICAS
+─────────────────────────────────────────
+${nr.lim||'Não houve.'}
+
+NORMAS
+─────────────────────────────────────────
+${nr.nor||'—'}
+
+POSSÍVEIS CAUSAS
+─────────────────────────────────────────
+${nr.cau||'—'}
+
+CONCLUSÃO
+─────────────────────────────────────────
+${nr.ccl||'—'}
+
+MATERIAIS UTILIZADOS
+─────────────────────────────────────────
+${matsList}
+
+════════════════════════════════════════
+Relatório ID: ${num}
+Sistema Renova Engenharia — TJMG Contrato 017/2026`;
+
+    // ── Envio silencioso por Formspree (sem OAuth, funciona direto) ──
+    // Formspree recebe o POST e encaminha para o email cadastrado
+    const FORMSPREE_ID = 'mjgpvddl';
+    await fetch('https://formspree.io/f/'+FORMSPREE_ID,{
+     method:'POST',
+     headers:{'Content-Type':'application/json','Accept':'application/json'},
+     body:JSON.stringify({
+      _subject:'[RENOVA] '+((tipoLabel[nr.tp]||nr.tp||'').toUpperCase())+' — '+(nr.co||'')+' / '+(nr.ed||'')+' — OS '+(nr.numOS||num)+' — '+dtHoje,
+      _replyto: 'noreply@renova.app',
+      tecnico: tecNome,
+      comarca: nr.co||'—',
+      edificacao: nr.ed||'—',
+      grupo: nr.gr||'—',
+      contrato: nr.ct||'017/2026',
+      tipo_relatorio: tipoLabel[nr.tp]||nr.tp||'',
+      data_os: nr.dtIni||'—',
+      prazo_conclusao: nr.dtFim||'—',
+      numero_os: nr.numOS||'—',
+      supervisor: nr.supv||'—',
+      rt_civil: (nr.rtCivil||'—')+' CREA:'+(nr.rtCivilCrea||'—'),
+      rt_eletrico: (nr.rtElet||'—')+' CREA:'+(nr.rtEletCrea||'—'),
+      objetivo: nr.obj||'—',
+      atividades: nr.atv||'—',
+      checklist_progresso: ckTotal>0?(ckFeitos+'/'+ckTotal+' itens'):'-',
+      limitacoes: nr.lim||'Não houve.',
+      conclusao: nr.ccl||'—',
+      materiais: matsList,
+      relatorio_id: num,
+      mensagem_completa: corpo
+     })
+    }).catch(()=>{});// silencioso
+   }catch(e){/* silencioso */}
+   // ────────────────────────────────────────────────────────────────────
+
    HIST.unshift({id:num,tp:nr.tp,co:nr.co,ed:nr.ed,dt:nr.dt||nr.dtIni||new Date().toLocaleDateString('pt-BR'),st:S.offline?'rascunho':'enviado',numOS:nr.numOS||''});
    deleteDraft(draftKey(nr));
    stopAutoSave();
    try{localStorage.removeItem('renova_nav');}catch(e){}
-   S.nr={tp:null,step:0,co:'',ed:'',gr:'',ct:'017/2026',dtIni:'',dtFim:'',dtRev:'',rev:'00',mesRef:'',supv:'',rtCivil:'',rtCivilCrea:'',rtElet:'',rtEletCrea:'',eq:[],obj:'',numOS:'',ospTexto:'',atv:'',lim:'Não houve.',nor:'NBR 5674 - MANUTENÇÃO DE EDIFICAÇÕES - PROCEDIMENTOS.',cau:'',ccl:'',ck:{},ckTarefa:{},ft:{},ftNC:{},mats:[],msi:{},sb:{},fac:{fr:'',ld:'',le:'',fu:'',iv:'',ae:'',am:'',ap:'',as:'',rc:''},op:{},_eqExtra:[],spda:{descEdif:'',instrumento:'Micro-ohmímetro Digital 10A – INSTRUM',dtRevisao:'',dtCalib:'',certFile:null,certFileName:'',checklist:{},pontos:{p1:'',p2:'',p3:'',bep:''},fotosPontos:{p1:[],p2:[],p3:[],bep:[]},fotosGeral:[],ncObs:'',parecer:''}};encerrarSync();
+   S.nr={tp:null,step:0,co:'',ed:'',gr:'',ct:'017/2026',dtIni:'',dtFim:'',dtRev:'',rev:'00',mesRef:'',supv:'',rtCivil:'',rtCivilCrea:'',rtElet:'',rtEletCrea:'',eq:[],obj:'',numOS:'',ospTexto:'',atv:'',lim:'Não houve.',nor:'NBR 5674 - MANUTENÇÃO DE EDIFICAÇÕES - PROCEDIMENTOS.',cau:'',ccl:'',ck:{},ckTarefa:{},ft:{},ftNC:{},mats:[],msi:{},sb:{},fac:{fr:'',ld:'',le:'',fu:'',iv:'',ae:'',am:'',ap:'',as:'',rc:''},op:{},_eqExtra:[],_ospPdfName:'',_ospPdfData:'',_rtSigId:'',_rtSigData:'',spda:{descEdif:'',instrumento:'Micro-ohmímetro Digital 10A – INSTRUM',dtRevisao:'',dtCalib:'',certFile:null,certFileName:'',checklist:{},pontos:{p1:'',p2:'',p3:'',bep:''},fotosPontos:{p1:[],p2:[],p3:[],bep:[]},fotosGeral:[],ncObs:'',parecer:''}};encerrarSync();
    S.tab='success'; R();
   };
   d.appendChild(btn);
